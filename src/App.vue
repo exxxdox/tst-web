@@ -1,47 +1,63 @@
 <script setup>
-import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
+import { ref, computed } from 'vue'
+import NotFound from './components/NotFound.vue'
+import Home from './components/Home.vue'
+import About from './components/About.vue'
+const routes = {
+  '/': Home,
+  '/about': About,
+  '/NotFound': NotFound,
+}
+const currentPath = ref(window.location.hash)
+window.addEventListener('hashchange', () => {
+  currentPath.value = window.location.hash
+})
+const currentView = computed(() => {
+  return routes[currentPath.value.slice(1) || '/'] || NotFound
+})
 </script>
 
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
+  <header class="header">
+    <!-- <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
 
     <div class="wrapper">
       <HelloWorld msg="You did it!" />
+    </div> -->
+    <div class="left">
+      <a href="#/" style="font-family: Bitcount; font-size: 50px">TST</a>
+      <a href="#/about">About</a>
+      <a href="#/non-existent-path">Broken Link</a>
     </div>
+    <div class="foot">test</div>
   </header>
 
   <main>
-    <TheWelcome />
+    <component :is="currentView" />
+    <!-- <TheWelcome /> -->
   </main>
 </template>
 
 <style scoped>
-header {
-  line-height: 1.5;
+.header {
+  display: flex;
+  justify-content: flex-left;
+  align-items: center;
+  font-size: 30px;
+  /* background-color: var(--main-color);
+  color: white; */
 }
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
+.left {
+  /* position: absolute;
+  left: 50%;
+  transform: translateX(-50%); */
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  gap: 40px;
 }
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
+.foot {
+  position: absolute;
+  left: 100%;
+  transform: translateX(-100%);
 }
 </style>

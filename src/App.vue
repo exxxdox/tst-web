@@ -50,7 +50,7 @@ const currentView = computed(() => {
 .left {
   /* position: absolute;
   left: 50%;
-  transform: translateX(-50%); */
+  transform: translateX(-50%); 123*/
   display: grid;
   grid-template-columns: repeat(3, auto);
   gap: 40px;

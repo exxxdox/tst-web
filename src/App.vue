@@ -1,12 +1,10 @@
 <script setup>
 import { ref, computed } from 'vue'
-import NotFound from './components/NotFound.vue'
 import Home from './components/Home.vue'
-import About from './components/About.vue'
+import Music from './components/Music.vue'
 const routes = {
   '/': Home,
-  '/about': About,
-  '/NotFound': NotFound,
+  '/detail': Music,
 }
 const currentPath = ref(window.location.hash)
 window.addEventListener('hashchange', () => {
@@ -19,22 +17,19 @@ const currentView = computed(() => {
 
 <template>
   <header class="header">
-    <!-- <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-    </div> -->
     <div class="left">
-      <a href="#/" style="font-family: Bitcount; font-size: 50px">TST</a>
-      <a href="#/about">About</a>
-      <a href="#/non-existent-path">Broken Link</a>
+      <a href="#/" style="font-family: Bitcount; font-size: 50px; font-weight: normal">TST</a>
+      <a href="#/detail">Music</a>
     </div>
-    <div class="foot">test</div>
+    <div class="foot">
+      <a href="https://github.com/exxxdox">
+        <img alt="github logo" class="logo" src="./assets/svg/github.svg" />
+      </a>
+    </div>
   </header>
 
   <main>
     <component :is="currentView" />
-    <!-- <TheWelcome /> -->
   </main>
 </template>
 
@@ -44,14 +39,11 @@ const currentView = computed(() => {
   justify-content: flex-left;
   align-items: center;
   font-size: 30px;
-  /* background-color: var(--main-color);
-  color: white; */
+  border-bottom: 1px solid #eff1f3;
 }
 .left {
-  /* position: absolute;
-  left: 50%;
-  transform: translateX(-50%); 123*/
   display: grid;
+  align-items: center;
   grid-template-columns: repeat(3, auto);
   gap: 40px;
 }
@@ -59,5 +51,6 @@ const currentView = computed(() => {
   position: absolute;
   left: 100%;
   transform: translateX(-100%);
+  align-items: center;
 }
 </style>

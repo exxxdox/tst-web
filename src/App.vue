@@ -21,9 +21,12 @@ const currentView = computed(() => {
       <a href="#/" style="font-family: Bitcount; font-size: 50px; font-weight: normal">TST</a>
       <a href="#/detail">Music</a>
     </div>
-    <div class="foot">
+    <div class="foot" style="gap: 20px">
       <a href="https://github.com/exxxdox">
-        <img alt="github logo" class="logo" target="_blank" src="./assets/svg/github.svg" />
+        <img alt="github logo" class="logo" target="_blank" src="/svg/github.svg" />
+      </a>
+      <a href="https://space.bilibili.com/26660539">
+        <img alt="github logo" class="logo" target="_blank" src="/svg/bilibili.svg" />
       </a>
     </div>
   </header>
@@ -48,6 +51,8 @@ const currentView = computed(() => {
   gap: 40px;
 }
 .foot {
+  display: flex;
+  flex-direction: row;
   position: absolute;
   left: 100%;
   transform: translateX(-100%);

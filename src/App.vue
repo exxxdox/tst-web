@@ -23,7 +23,7 @@ const currentView = computed(() => {
     </div>
     <div class="foot">
       <a href="https://github.com/exxxdox">
-        <img alt="github logo" class="logo" src="./assets/svg/github.svg" />
+        <img alt="github logo" class="logo" target="_blank" src="./assets/svg/github.svg" />
       </a>
     </div>
   </header>

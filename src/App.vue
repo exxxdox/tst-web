@@ -42,7 +42,7 @@ const currentView = computed(() => {
   justify-content: flex-left;
   align-items: center;
   font-size: 30px;
-  border-bottom: 1px solid #eff1f3;
+  border-bottom: 1px solid #535252;
 }
 .left {
   display: grid;

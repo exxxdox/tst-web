@@ -19,7 +19,7 @@ const currentView = computed(() => {
   <header class="header">
     <div class="left">
       <a href="#/" style="font-family: Bitcount; font-size: 50px; font-weight: normal">TST</a>
-      <a href="#/detail">Music</a>
+      <a href="#/detail">test</a>
     </div>
     <div class="foot" style="gap: 20px">
       <a href="https://github.com/exxxdox">

@@ -4,9 +4,7 @@
     <h1>HomePage</h1>
   </div>
   <video
-    autoplay
-    muted
-    loop
+    controls
     id="myVideo"
     style="
       width: 854px;
@@ -15,7 +13,6 @@
       /* position: fixed;
       top: 0;
       left: 0; */
-      z-index: -1;
     "
   >
     <source src="/rotate-My favourite things.mp4" type="video/mp4" />

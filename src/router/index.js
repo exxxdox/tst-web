@@ -1,11 +1,11 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router'
 
 const routes = [
   { path: '/', name: 'Home', component: import('@/views/Home.vue') },
   { path: '/performance', name: 'Performance', component: import('@/views/Performance.vue') },
 ]
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHashHistory(),
   routes,
   // linkActiveClass: "vue-school-active-link",
   scrollBehavior(to, from, savedPosition) {

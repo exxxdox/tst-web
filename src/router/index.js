@@ -1,8 +1,8 @@
-import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
 
 const routes = [
-  { path: '/', name: 'Home', component: import('@/views/Home.vue') },
-  { path: '/performance', name: 'Performance', component: import('@/views/Performance.vue') },
+  { path: '/', name: 'Home', component: () => import('@/views/Home.vue') },
+  { path: '/performance', name: 'Performance', component: () => import('@/views/Performance.vue') },
 ]
 const router = createRouter({
   history: createWebHashHistory(),
@@ -27,5 +27,11 @@ const router = createRouter({
 //     return { name: "login", query: { redirect: to.fullPath } };
 //   }
 // });
+
+// 添加路由导航守卫用于调试
+// router.beforeEach((to, from, next) => {
+//   console.log('路由跳转:', from.path, '->', to.path)
+//   next()
+// })
 
 export default router

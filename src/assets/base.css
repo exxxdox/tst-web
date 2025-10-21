@@ -78,7 +78,9 @@ body {
     transition: color 0.5s,
     background-color 0.5s;
     line-height: 1.6;
-    font-family: ui-sans-serif,
+    font-family:
+    Arial,
+    ui-sans-serif,
     Inter,
     -apple-system,
     BlinkMacSystemFont,

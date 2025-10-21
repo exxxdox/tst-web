@@ -10,7 +10,7 @@
   position: fixed;
   top: 50%;
   left: 50%;
-  font-size: 70vw;
+  font-size: 60vw;
   text-align: center;
   font-weight: bold;
   transform: translate(-50%, -50%) rotate(-15deg);

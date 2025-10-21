@@ -19,7 +19,7 @@ const currentView = computed(() => {
   <header class="header">
     <div class="left">
       <a href="#/" style="font-family: Bitcount; font-size: 50px; font-weight: normal">TST</a>
-      <a href="#/detail">test</a>
+      <!-- <a href="#/detail">test</a> -->
     </div>
     <div class="foot" style="gap: 20px">
       <a href="https://github.com/exxxdox">
@@ -39,7 +39,7 @@ const currentView = computed(() => {
 <style scoped>
 .header {
   display: flex;
-  justify-content: flex-left;
+  justify-content: flex-start;
   align-items: center;
   font-size: 30px;
   border-bottom: 1px solid #535252;

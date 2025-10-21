@@ -1,8 +1,8 @@
 @import './base.css';
 
 :root {
-  --a-color: #687386;
-  --hover-color: #000000;
+  --a-color: rgba(255, 255, 255, 0.68);
+  --hover-color: #ffffff;
 }
 
 * {

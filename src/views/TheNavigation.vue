@@ -5,40 +5,42 @@ export default {
 </script>
 
 <template>
-  <header class="header">
+  <header class="nav-container">
     <div class="left">
       <AppLink
         :to="{ name: 'Home' }"
-        style="font-family: Bitcount, monospace; font-size: 50px; font-weight: normal"
-        >TST</AppLink
+        style="font-family: Bitcount, monospace; font-size: 12rem; font-weight: normal"
+        >Home</AppLink
       >
       <AppLink :to="{ name: 'Performance' }">Performance</AppLink>
     </div>
     <div class="foot" style="gap: 20px">
-      <a href="https://github.com/exxxdox">
-        <img alt="github logo" class="logo" target="_blank" src="/svg/github.svg" />
-      </a>
-      <a href="https://space.bilibili.com/26660539">
-        <img alt="github logo" class="logo" target="_blank" src="/svg/bilibili.svg" />
-      </a>
+      <AppLink to="https://github.com/exxxdox">
+        <img alt="github logo" class="logo" src="/svg/github.svg" />
+      </AppLink>
+      <AppLink to="https://space.bilibili.com/26660539">
+        <img alt="bilibili logo" class="logo" src="/svg/bilibili.svg" />
+      </AppLink>
     </div>
   </header>
 </template>
 
 <style scoped>
-.header {
+.nav-container {
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  font-size: 30px;
-  border-bottom: 1px solid #535252;
+  /*border-bottom: 1px solid #535252;*/
   margin: 0;
+  min-height: 18rem;
+  background-color: black;
 }
 .left {
   display: grid;
   align-items: center;
   grid-template-columns: repeat(3, auto);
-  gap: 40px;
+  gap: 2rem;
+  padding-left: 2rem;
 }
 .foot {
   display: flex;
@@ -47,5 +49,9 @@ export default {
   left: 100%;
   transform: translateX(-100%);
   align-items: center;
+  padding-right: 2rem;
+}
+.router-link-active {
+  color: var(--hover-color);
 }
 </style>

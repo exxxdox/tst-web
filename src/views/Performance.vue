@@ -1,8 +1,8 @@
 <script setup></script>
 <template>
-  <div class="not-found">
-    <h1>HomePage</h1>
-  </div>
+  <h1>My favourtite things</h1>
+  <h2>Jonathan Kreisberg</h2>
+  <h3>Covered by tst</h3>
   <video
     controls
     id="myVideo"
@@ -15,7 +15,7 @@
       left: 0; */
     "
   >
-    <source src="/rotate-My favourite things.mp4" type="video/mp4" />
+    <source src="/rotate-My%20favourite%20things.mp4" type="video/mp4" />
   </video>
 </template>
 

@@ -28,5 +28,6 @@
   height: 100vh; /* 占据整个视口高度 */
   object-fit: cover; /* 保持图片比例并覆盖整个区域 */
   pointer-events: none;
+  min-width: 526px;
 }
 </style>

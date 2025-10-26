@@ -14,6 +14,7 @@
   text-align: center;
   font-weight: bold;
   transform: translate(-50%, -50%) rotate(-15deg);
+  text-shadow: 1vw 1vw 30px rgb(145, 144, 208);
   /*点击可以穿透*/
   pointer-events: none;
 }

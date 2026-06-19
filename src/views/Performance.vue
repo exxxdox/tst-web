@@ -15,7 +15,7 @@ const bilibiliPlayerUrl =
       allowfullscreen
       scrolling="no"
       frameborder="0"
-      sandbox="allow-top-navigation allow-same-origin allow-forms allow-scripts"
+      sandbox="allow-same-origin allow-forms allow-scripts allow-popups allow-popups-to-escape-sandbox"
     ></iframe>
   </div>
 </template>

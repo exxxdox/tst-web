@@ -114,8 +114,21 @@ const previewUrl = `https://api.microlink.io/?url=${encodeURIComponent(
 
 @media (max-width: 760px) {
   .link-card {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+    min-width: 0;
     min-height: 0;
+  }
+
+  .link-content {
+    min-width: 0;
+  }
+
+  .title {
+    font-size: clamp(1.25rem, 6vw, 2rem);
+    line-height: 1.15;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
   .visit {

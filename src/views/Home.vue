@@ -31,4 +31,12 @@
   pointer-events: none;
   min-width: 526px;
 }
+
+/* 移动端适配：缩小到一定比例后去除装饰文字与背景图 */
+@media (max-width: 760px) {
+  .fixed-bluegiant,
+  .centered-rotated-text {
+    display: none;
+  }
+}
 </style>

@@ -40,6 +40,7 @@ const links = [
 
 @media (max-width: 760px) {
   .links-page {
+    min-height: auto;
     padding: 1rem;
   }
 }

@@ -13,6 +13,7 @@ export default {
         >Home</AppLink
       >
       <AppLink :to="{ name: 'Performance' }">Performance</AppLink>
+      <AppLink :to="{ name: 'Links' }">Links</AppLink>
     </div>
     <div class="foot" style="gap: 20px">
       <AppLink to="https://github.com/exxxdox">
@@ -38,7 +39,7 @@ export default {
 .left {
   display: grid;
   align-items: center;
-  grid-template-columns: repeat(3, auto);
+  grid-template-columns: repeat(4, auto);
   gap: 2rem;
   padding-left: 2rem;
 }

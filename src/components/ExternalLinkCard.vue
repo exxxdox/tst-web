@@ -45,17 +45,19 @@ const previewUrl = `https://api.microlink.io/?url=${encodeURIComponent(
   min-height: 190px;
   padding: 1rem;
   overflow: hidden;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--color-heading);
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.04)), #151515;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+    linear-gradient(135deg, rgba(61, 255, 141, 0.08), rgba(3, 18, 33, 0.44)),
+    var(--color-background-soft);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.34);
+  box-shadow: 0 18px 50px rgba(0, 12, 24, 0.36);
+  backdrop-filter: blur(14px);
 }
 
 .link-card:hover {
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.35);
+  color: var(--color-heading);
+  border-color: var(--color-border-hover);
   transform: translateY(-2px);
 }
 
@@ -63,7 +65,7 @@ const previewUrl = `https://api.microlink.io/?url=${encodeURIComponent(
   display: block;
   aspect-ratio: 16 / 10;
   overflow: hidden;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.16), transparent), #242424;
+  background: linear-gradient(135deg, rgba(61, 255, 141, 0.1), transparent), var(--color-background-mute);
   border-radius: 6px;
 }
 
@@ -81,7 +83,7 @@ const previewUrl = `https://api.microlink.io/?url=${encodeURIComponent(
 }
 
 .host {
-  color: rgba(255, 255, 255, 0.52);
+  color: rgba(61, 255, 141, 0.62);
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -89,7 +91,7 @@ const previewUrl = `https://api.microlink.io/?url=${encodeURIComponent(
 }
 
 .title {
-  color: #fff;
+  color: var(--color-heading);
   font-size: clamp(2rem, 4vw, 3.5rem);
   font-weight: 800;
   line-height: 1;
@@ -97,7 +99,7 @@ const previewUrl = `https://api.microlink.io/?url=${encodeURIComponent(
 }
 
 .description {
-  color: rgba(255, 255, 255, 0.64);
+  color: var(--color-text);
   font-size: 1rem;
   font-weight: 600;
 }
@@ -105,8 +107,9 @@ const previewUrl = `https://api.microlink.io/?url=${encodeURIComponent(
 .visit {
   align-self: end;
   padding: 0.6rem 0.85rem;
-  color: #111;
-  background: #fff;
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
+  border: 1px solid rgba(61, 255, 141, 0.28);
   border-radius: 6px;
   font-size: 0.85rem;
   font-weight: 800;

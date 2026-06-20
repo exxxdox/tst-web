@@ -124,7 +124,8 @@ export default {
   /*border-bottom: 1px solid #535252;*/
   margin: 0;
   min-height: 18rem;
-  background-color: black;
+  background-color: rgba(6, 17, 31, 0.78);
+  backdrop-filter: blur(16px);
 }
 .left {
   display: grid;
@@ -192,7 +193,7 @@ export default {
     margin-left: auto;
     padding: 0;
     background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid var(--color-border);
     border-radius: 4px;
     cursor: pointer;
     z-index: 30;
@@ -241,8 +242,9 @@ export default {
     bottom: 0;
     width: min(78vw, 320px);
     padding: 4rem 1.5rem 1.5rem;
-    background-color: black;
-    border-left: 1px solid rgba(255, 255, 255, 0.12);
+    background-color: var(--color-background-soft);
+    border-left: 1px solid var(--color-border);
+    backdrop-filter: blur(16px);
     transform: translateX(100%);
     transition: transform 0.28s ease;
     z-index: 40;

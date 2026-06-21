@@ -6,9 +6,15 @@
 }
 
 #app {
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
   margin: 0 auto;
   font-weight: normal;
+}
+
+#app > main {
+  flex: 1 0 auto;
 }
 
 a {
@@ -82,22 +88,6 @@ p {
   font-weight: 900;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-}
-
-.signal-rule {
-  display: block;
-  width: min(18rem, 70vw);
-  height: 0.55rem;
-  overflow: hidden;
-  background: repeating-linear-gradient(
-    90deg,
-    rgba(61, 255, 141, 0.82) 0 0.38rem,
-    transparent 0.38rem 0.68rem,
-    rgba(255, 179, 71, 0.66) 0.68rem 0.78rem,
-    transparent 0.78rem 1.35rem
-  );
-  border-radius: 999px;
-  opacity: 0.78;
 }
 
 @font-face {

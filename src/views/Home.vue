@@ -1,4 +1,6 @@
-<script setup></script>
+<script setup>
+import SignalStrip from '@/components/SignalStrip.vue'
+</script>
 <template>
   <main class="home-page">
     <div class="centered-rotated-text">TST</div>
@@ -15,9 +17,9 @@
         <AppLink class="hero__action hero__action--primary" :to="{ name: 'Performance' }">
           Watch performance
         </AppLink>
-        <AppLink class="hero__action" :to="{ name: 'Links' }">Open links</AppLink>
+        <AppLink class="hero__action" :to="{ name: 'Links' }">Explore instruments</AppLink>
       </div>
-      <span class="signal-rule" aria-hidden="true"></span>
+      <SignalStrip input="Guitar" output="Code" />
     </section>
   </main>
 </template>
@@ -40,6 +42,7 @@
 .hero__mark {
   max-width: none;
   color: var(--color-heading);
+  font-size: var(--fs-display);
   text-shadow:
     0.06em 0.06em 0 rgba(61, 255, 141, 0.42),
     -0.035em -0.035em 0 rgba(255, 179, 71, 0.46),
@@ -65,20 +68,31 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.65rem;
   min-height: 3rem;
-  padding: 0.78rem 1rem;
+  padding: 0.78rem 1.05rem;
   color: var(--color-heading);
-  background: rgba(8, 24, 42, 0.72);
-  border: 1px solid var(--color-border);
-  border-radius: 999px;
-  box-shadow: 0 16px 40px rgba(0, 8, 20, 0.22);
-  backdrop-filter: blur(14px);
+  background: #0a2032;
+  border: 1px solid rgba(61, 255, 141, 0.24);
+  border-radius: 7px;
+  box-shadow:
+    0 12px 28px rgba(0, 8, 20, 0.22),
+    0 1px 0 rgba(255, 255, 255, 0.05) inset;
 }
 
 .hero__action--primary {
   color: #06111f;
-  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-warm));
-  border-color: transparent;
+  background: var(--color-accent);
+  border-color: rgba(222, 255, 238, 0.4);
+}
+
+.hero__action--primary::after {
+  width: 0.45rem;
+  height: 0.45rem;
+  content: '';
+  background: var(--color-accent-warm);
+  border-radius: 50%;
+  box-shadow: 0 0 0.55rem rgba(255, 179, 71, 0.64);
 }
 
 .hero__action:hover {
@@ -86,7 +100,7 @@
 }
 
 .centered-rotated-text {
-  opacity: 0.07;
+  opacity: 0.035;
   position: fixed;
   top: 50%;
   left: 50%;
@@ -98,8 +112,8 @@
   text-align: center;
   transform: translate(-50%, -50%) rotate(-15deg);
   text-shadow:
-    1vw 1vw 30px rgba(61, 255, 141, 0.55),
-    -0.5vw -0.5vw 30px rgba(255, 179, 71, 0.26);
+    1vw 1vw 30px rgba(61, 255, 141, 0.28),
+    -0.5vw -0.5vw 30px rgba(255, 179, 71, 0.16);
   /*点击可以穿透*/
   pointer-events: none;
 }
@@ -118,6 +132,40 @@
   object-position: top right;
   filter: saturate(0.82) contrast(1.08) drop-shadow(-2rem 2rem 4rem rgba(0, 0, 0, 0.4));
   pointer-events: none;
+}
+
+.hero > * {
+  animation: power-on 0.52s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.hero > :nth-child(2) {
+  animation-delay: 0.08s;
+}
+
+.hero > :nth-child(3) {
+  animation-delay: 0.15s;
+}
+
+.hero > :nth-child(4) {
+  animation-delay: 0.22s;
+}
+
+.hero > :nth-child(5) {
+  animation-delay: 0.29s;
+}
+
+@keyframes power-on {
+  from {
+    opacity: 0;
+    transform: translateY(0.55rem);
+    filter: brightness(1.8);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: brightness(1);
+  }
 }
 
 /* 移动端适配：保留装饰元素，重排为雅致的窄屏构图，层级低于导航 */
@@ -140,7 +188,7 @@
   /* TST 作为居中浅色水印 */
   .centered-rotated-text {
     font-size: 46vw;
-    opacity: 0.06;
+    opacity: 0.03;
     transform: translate(-50%, -50%) rotate(-8deg);
     white-space: nowrap;
     pointer-events: none;
@@ -167,7 +215,7 @@
 @media (max-width: 380px) {
   .centered-rotated-text {
     font-size: 46vw;
-    opacity: 0.05;
+    opacity: 0.025;
   }
 
   .fixed-bluegiant {

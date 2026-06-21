@@ -57,12 +57,15 @@
     'Helvetica Neue', Arial, sans-serif;
 
     --container-max: 1120px;
+    --stage-max: 980px;
     --section-gap: clamp(3rem, 8vw, 7rem);
     --nav-height: clamp(4.75rem, 8vw, 5.75rem);
+    --footer-height: 4rem;
 
     --fs-kicker: clamp(0.76rem, 1.4vw, 0.86rem);
     --fs-body: clamp(1rem, 1.7vw, 1.1rem);
-    --fs-h1: clamp(3.4rem, 14vw, 9.5rem);
+    --fs-display: clamp(3.4rem, 14vw, 9.5rem);
+    --fs-h1: clamp(3rem, 8.5vw, 7rem);
     --fs-h2: clamp(2rem, 5vw, 4rem);
     --fs-h3: clamp(1.15rem, 2.4vw, 1.55rem);
 }

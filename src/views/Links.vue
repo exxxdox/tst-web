@@ -1,5 +1,6 @@
 <script setup>
 import ExternalLinkCard from '@/components/ExternalLinkCard.vue'
+import SignalStrip from '@/components/SignalStrip.vue'
 
 const links = [
   {
@@ -15,11 +16,11 @@ const links = [
     <section class="links-shell container" aria-labelledby="links-title">
       <div class="links-head">
         <p class="kicker">Outboard gear</p>
-        <h1 id="links-title">Links and instruments</h1>
+        <h1 id="links-title">Web instruments</h1>
         <p>
           A short patch bay for projects, profiles, and web tools that sit outside this little stage.
         </p>
-        <span class="signal-rule" aria-hidden="true"></span>
+        <SignalStrip input="Tool bus" output="Online" />
       </div>
 
       <div class="links-grid" aria-label="External links">
@@ -37,7 +38,7 @@ const links = [
 
 <style scoped>
 .links-page {
-  min-height: calc(100vh - var(--nav-height));
+  min-height: calc(100vh - var(--nav-height) - var(--footer-height));
   padding-block: clamp(2.5rem, 7vw, 6rem);
 }
 
@@ -51,6 +52,10 @@ const links = [
   gap: 0.85rem;
 }
 
+.links-head h1 {
+  text-wrap: balance;
+}
+
 .links-head p:not(.kicker) {
   color: rgba(222, 255, 238, 0.8);
   font-weight: 650;
@@ -58,6 +63,7 @@ const links = [
 
 .links-grid {
   display: grid;
+  width: min(100%, var(--stage-max));
   gap: 1.5rem;
 }
 

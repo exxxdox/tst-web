@@ -42,12 +42,13 @@ const previewUrl = `https://api.microlink.io/?url=${encodeURIComponent(
       <span v-if="description" class="description">{{ description }}</span>
     </span>
 
-    <span class="visit" aria-hidden="true">Open</span>
+    <span class="visit" aria-hidden="true">Try it <span>→</span></span>
   </a>
 </template>
 
 <style scoped>
 .link-card {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(180px, 320px) minmax(0, 1fr) auto;
   align-items: center;
@@ -56,13 +57,12 @@ const previewUrl = `https://api.microlink.io/?url=${encodeURIComponent(
   padding: 1rem;
   overflow: hidden;
   color: var(--color-heading);
-  background:
-    linear-gradient(135deg, rgba(61, 255, 141, 0.1), rgba(255, 179, 71, 0.06)),
-    var(--color-background-soft);
-  border: 1px solid var(--color-border);
-  border-radius: 18px;
-  box-shadow: 0 18px 50px rgba(0, 12, 24, 0.36);
-  backdrop-filter: blur(14px);
+  background: #0a2032;
+  border: 1px solid rgba(61, 255, 141, 0.22);
+  border-radius: 10px;
+  box-shadow:
+    0 18px 44px rgba(0, 12, 24, 0.32),
+    0 1px 0 rgba(255, 255, 255, 0.05) inset;
 }
 
 .link-card::before {
@@ -99,7 +99,7 @@ const previewUrl = `https://api.microlink.io/?url=${encodeURIComponent(
     linear-gradient(135deg, rgba(255, 179, 71, 0.14), transparent),
     var(--color-background-mute);
   border: 1px solid rgba(61, 255, 141, 0.1);
-  border-radius: 14px;
+  border-radius: 6px;
 }
 
 .preview,
@@ -155,21 +155,28 @@ const previewUrl = `https://api.microlink.io/?url=${encodeURIComponent(
 }
 
 .visit {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
   align-self: end;
   padding: 0.6rem 0.85rem;
   color: #06111f;
-  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-warm));
+  background: var(--color-accent);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 999px;
+  border-radius: 6px;
   font-size: 0.85rem;
   font-weight: 900;
 }
 
-@media (max-width: 760px) {
+@media (max-width: 900px) {
   .link-card {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: minmax(220px, 0.9fr) minmax(0, 1fr);
     min-width: 0;
     min-height: 0;
+  }
+
+  .preview-wrap {
+    grid-row: 1 / span 2;
   }
 
   .link-content {
@@ -185,7 +192,22 @@ const previewUrl = `https://api.microlink.io/?url=${encodeURIComponent(
   }
 
   .visit {
+    grid-column: 2;
     justify-self: start;
+  }
+}
+
+@media (max-width: 680px) {
+  .link-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .preview-wrap {
+    grid-row: auto;
+  }
+
+  .visit {
+    grid-column: auto;
   }
 }
 </style>

@@ -5,43 +5,66 @@ const links = [
   {
     title: 'Transcribe Website',
     url: 'https://tc.tstio.com',
-    description: 'Transcribe, learn and being creative.',
+    description: 'Transcribe, learn, and stay creative.',
   },
 ]
 </script>
 
 <template>
   <main class="links-page">
-    <section class="links-shell" aria-label="External links">
-      <ExternalLinkCard
-        v-for="link in links"
-        :key="link.url"
-        :title="link.title"
-        :url="link.url"
-        :description="link.description"
-      />
+    <section class="links-shell container" aria-labelledby="links-title">
+      <div class="links-head">
+        <p class="kicker">Outboard gear</p>
+        <h1 id="links-title">Links and instruments</h1>
+        <p>
+          A short patch bay for projects, profiles, and web tools that sit outside this little stage.
+        </p>
+        <span class="signal-rule" aria-hidden="true"></span>
+      </div>
+
+      <div class="links-grid" aria-label="External links">
+        <ExternalLinkCard
+          v-for="link in links"
+          :key="link.url"
+          :title="link.title"
+          :url="link.url"
+          :description="link.description"
+        />
+      </div>
     </section>
   </main>
 </template>
 
 <style scoped>
 .links-page {
-  display: grid;
-  place-items: center;
-  min-height: calc(100vh - 18rem);
-  padding: clamp(2rem, 5vw, 5rem);
+  min-height: calc(100vh - var(--nav-height));
+  padding-block: clamp(2.5rem, 7vw, 6rem);
 }
 
 .links-shell {
   display: grid;
-  width: min(100%, 1120px);
+  gap: clamp(1.5rem, 4vw, 3rem);
+}
+
+.links-head {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.links-head p:not(.kicker) {
+  color: rgba(222, 255, 238, 0.8);
+  font-weight: 650;
+}
+
+.links-grid {
+  display: grid;
   gap: 1.5rem;
 }
 
 @media (max-width: 760px) {
   .links-page {
     min-height: auto;
-    padding: 1rem;
+    padding-block: 2rem 4rem;
   }
 }
 </style>

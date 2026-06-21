@@ -1,4 +1,6 @@
 <script setup>
+import { ref } from 'vue'
+
 const props = defineProps({
   title: {
     type: String,
@@ -15,6 +17,7 @@ const props = defineProps({
 })
 
 const host = new URL(props.url).host
+const hasPreview = ref(true)
 const previewUrl = `https://api.microlink.io/?url=${encodeURIComponent(
   props.url,
 )}&screenshot=true&meta=false&embed=screenshot.url`
@@ -23,7 +26,14 @@ const previewUrl = `https://api.microlink.io/?url=${encodeURIComponent(
 <template>
   <a class="link-card" :href="url" target="_blank" rel="noopener noreferrer">
     <span class="preview-wrap">
-      <img class="preview" :src="previewUrl" :alt="`${title} preview`" />
+      <img
+        v-if="hasPreview"
+        class="preview"
+        :src="previewUrl"
+        :alt="`${title} preview`"
+        @error="hasPreview = false"
+      />
+      <span v-else class="preview-fallback" aria-hidden="true">TST</span>
     </span>
 
     <span class="link-content">
@@ -47,12 +57,22 @@ const previewUrl = `https://api.microlink.io/?url=${encodeURIComponent(
   overflow: hidden;
   color: var(--color-heading);
   background:
-    linear-gradient(135deg, rgba(61, 255, 141, 0.08), rgba(3, 18, 33, 0.44)),
+    linear-gradient(135deg, rgba(61, 255, 141, 0.1), rgba(255, 179, 71, 0.06)),
     var(--color-background-soft);
   border: 1px solid var(--color-border);
-  border-radius: 8px;
+  border-radius: 18px;
   box-shadow: 0 18px 50px rgba(0, 12, 24, 0.36);
   backdrop-filter: blur(14px);
+}
+
+.link-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(255, 179, 71, 0.1), transparent);
+  opacity: 0;
+  transition: opacity 0.28s ease;
 }
 
 .link-card:hover {
@@ -61,19 +81,48 @@ const previewUrl = `https://api.microlink.io/?url=${encodeURIComponent(
   transform: translateY(-2px);
 }
 
-.preview-wrap {
-  display: block;
-  aspect-ratio: 16 / 10;
-  overflow: hidden;
-  background: linear-gradient(135deg, rgba(61, 255, 141, 0.1), transparent), var(--color-background-mute);
-  border-radius: 6px;
+.link-card:hover::before {
+  opacity: 1;
 }
 
-.preview {
+.preview-wrap {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(61, 255, 141, 0.1) 0 0.5rem,
+      transparent 0.5rem 0.9rem
+    ),
+    linear-gradient(135deg, rgba(255, 179, 71, 0.14), transparent),
+    var(--color-background-mute);
+  border: 1px solid rgba(61, 255, 141, 0.1);
+  border-radius: 14px;
+}
+
+.preview,
+.preview-fallback {
   display: block;
   width: 100%;
   height: 100%;
+}
+
+.preview {
   object-fit: cover;
+}
+
+.preview-fallback {
+  display: grid;
+  place-items: center;
+  color: rgba(222, 255, 238, 0.82);
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 8vw, 4.5rem);
+  line-height: 1;
+  text-shadow:
+    0.08em 0.08em 0 rgba(61, 255, 141, 0.4),
+    -0.04em -0.04em 0 rgba(255, 179, 71, 0.38);
 }
 
 .link-content {
@@ -83,17 +132,18 @@ const previewUrl = `https://api.microlink.io/?url=${encodeURIComponent(
 }
 
 .host {
-  color: rgba(61, 255, 141, 0.62);
+  color: rgba(255, 179, 71, 0.76);
   font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-weight: 800;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
 .title {
   color: var(--color-heading);
   font-size: clamp(2rem, 4vw, 3.5rem);
-  font-weight: 800;
+  font-weight: 850;
+  letter-spacing: -0.06em;
   line-height: 1;
   white-space: nowrap;
 }
@@ -101,18 +151,18 @@ const previewUrl = `https://api.microlink.io/?url=${encodeURIComponent(
 .description {
   color: var(--color-text);
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 650;
 }
 
 .visit {
   align-self: end;
   padding: 0.6rem 0.85rem;
-  color: var(--color-accent);
-  background: var(--color-accent-soft);
-  border: 1px solid rgba(61, 255, 141, 0.28);
-  border-radius: 6px;
+  color: #06111f;
+  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-warm));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
   font-size: 0.85rem;
-  font-weight: 800;
+  font-weight: 900;
 }
 
 @media (max-width: 760px) {

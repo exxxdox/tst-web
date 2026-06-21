@@ -51,19 +51,15 @@ export default {
 <template>
   <header class="nav-container">
     <div class="left">
-      <AppLink
-        :to="{ name: 'Home' }"
-        style="font-family: Bitcount, monospace; font-size: 12rem; font-weight: normal"
-        >Home</AppLink
-      >
-      <AppLink :to="{ name: 'Performance' }">Performance</AppLink>
-      <AppLink :to="{ name: 'Links' }">Links</AppLink>
+      <AppLink class="brand-link" :to="{ name: 'Home' }" aria-label="TST home">TST</AppLink>
+      <AppLink class="nav-link" :to="{ name: 'Performance' }">Performance</AppLink>
+      <AppLink class="nav-link" :to="{ name: 'Links' }">Links</AppLink>
     </div>
     <div class="foot" style="gap: 20px">
-      <AppLink to="https://github.com/exxxdox">
+      <AppLink class="social-link" to="https://github.com/exxxdox">
         <img alt="github logo" class="logo" src="/svg/github.svg" />
       </AppLink>
-      <AppLink to="https://space.bilibili.com/26660539">
+      <AppLink class="social-link" to="https://space.bilibili.com/26660539">
         <img alt="bilibili logo" class="logo" src="/svg/bilibili.svg" />
       </AppLink>
     </div>
@@ -118,21 +114,43 @@ export default {
 
 <style scoped>
 .nav-container {
+  position: sticky;
+  top: 0;
+  z-index: 20;
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  /*border-bottom: 1px solid #535252;*/
+  min-height: var(--nav-height);
   margin: 0;
-  min-height: 18rem;
-  background-color: rgba(6, 17, 31, 0.78);
+  padding-inline: clamp(1rem, 4vw, 2rem);
+  background:
+    linear-gradient(90deg, rgba(6, 17, 31, 0.9), rgba(8, 24, 42, 0.64)),
+    rgba(6, 17, 31, 0.78);
+  border-bottom: 1px solid rgba(61, 255, 141, 0.1);
   backdrop-filter: blur(16px);
 }
 .left {
   display: grid;
   align-items: center;
-  grid-template-columns: repeat(4, auto);
-  gap: 2rem;
-  padding-left: 2rem;
+  grid-template-columns: repeat(3, auto);
+  gap: clamp(1rem, 3vw, 2rem);
+}
+.brand-link {
+  color: var(--color-heading);
+  font-family: var(--font-display);
+  font-size: clamp(2.1rem, 5vw, 3.2rem);
+  font-weight: 400;
+  letter-spacing: -0.08em;
+  line-height: 1;
+  text-shadow:
+    0.08em 0.08em 0 rgba(61, 255, 141, 0.46),
+    -0.045em -0.045em 0 rgba(255, 179, 71, 0.46);
+}
+.nav-link {
+  padding-block: 0.4rem;
+  color: rgba(222, 255, 238, 0.78);
+  font-size: clamp(0.92rem, 1.5vw, 1rem);
+  letter-spacing: 0.04em;
 }
 .foot {
   display: flex;
@@ -141,10 +159,24 @@ export default {
   left: 100%;
   transform: translateX(-100%);
   align-items: center;
-  padding-right: 2rem;
+  padding-right: clamp(1rem, 4vw, 2rem);
+}
+.social-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
 }
 .router-link-active {
   color: var(--hover-color);
+}
+.nav-link.router-link-active {
+  color: var(--color-heading);
+  border-bottom: 2px solid var(--color-accent-warm);
 }
 
 /* Hamburger / drawer hidden on desktop */
@@ -156,22 +188,30 @@ export default {
 
 @media (max-width: 760px) {
   .nav-container {
-    position: relative;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    width: 100%;
     flex-wrap: nowrap;
     min-height: auto;
     padding: 1rem;
     gap: 1rem;
+    backdrop-filter: none;
   }
   .left {
+    min-width: 0;
     grid-template-columns: auto;
     gap: 0;
     padding-left: 0;
     justify-content: start;
     align-items: center;
   }
-  .left :first-child {
-    font-size: 2rem !important;
-    line-height: 1 !important;
+  .brand-link {
+    display: inline-flex;
+    max-width: calc(100vw - 6.5rem);
+    overflow: hidden;
+    font-size: 2rem;
+    white-space: nowrap;
   }
   /* Collapse inline non-Home links + foot icons behind hamburger */
   .left > a:not(:first-child) {
@@ -188,13 +228,13 @@ export default {
     justify-content: center;
     align-items: center;
     gap: 5px;
-    width: 36px;
-    height: 36px;
+    width: 42px;
+    height: 42px;
     margin-left: auto;
     padding: 0;
-    background: transparent;
+    background: rgba(255, 255, 255, 0.03);
     border: 1px solid var(--color-border);
-    border-radius: 4px;
+    border-radius: 999px;
     cursor: pointer;
     z-index: 30;
   }
@@ -221,11 +261,11 @@ export default {
     display: block;
     position: fixed;
     inset: 0;
-    background-color: rgba(0, 0, 0, 0.55);
+    background-color: rgba(0, 0, 0, 0.62);
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.25s ease;
-    z-index: 35;
+    z-index: 110;
   }
   .drawer-backdrop.open {
     opacity: 1;
@@ -240,22 +280,27 @@ export default {
     top: 0;
     right: 0;
     bottom: 0;
-    width: min(78vw, 320px);
-    padding: 4rem 1.5rem 1.5rem;
-    background-color: var(--color-background-soft);
+    width: min(86vw, 320px);
+    max-width: calc(100vw - 1rem);
+    min-height: 100dvh;
+    padding: calc(4rem + env(safe-area-inset-top)) 1.5rem calc(1.5rem + env(safe-area-inset-bottom));
+    background:
+      linear-gradient(180deg, rgba(255, 179, 71, 0.08), transparent 32%),
+      var(--color-background-soft);
     border-left: 1px solid var(--color-border);
     backdrop-filter: blur(16px);
     transform: translateX(100%);
     transition: transform 0.28s ease;
-    z-index: 40;
+    z-index: 120;
     overflow-y: auto;
+    box-shadow: -28px 0 70px rgba(0, 0, 0, 0.42);
   }
   .drawer.open {
     transform: translateX(0);
   }
   .drawer-close {
     position: absolute;
-    top: 0.6rem;
+    top: calc(0.6rem + env(safe-area-inset-top));
     right: 0.8rem;
     width: 36px;
     height: 36px;
@@ -273,6 +318,7 @@ export default {
     gap: 1.25rem;
   }
   .drawer-nav a {
+    color: var(--color-heading);
     font-size: 1.6rem;
   }
   .drawer-foot {

@@ -1,56 +1,124 @@
 @import './base.css';
 
 :root {
-  --a-color: rgba(178, 218, 204, 0.72);
+  --a-color: rgba(178, 218, 204, 0.82);
   --hover-color: var(--color-accent);
 }
 
-* {
-  position: relative;
-}
-
 #app {
-  /*max-width: 1280px;*/
+  min-height: 100vh;
   margin: 0 auto;
-  /*padding: 2rem;*/
   font-weight: normal;
 }
 
 a {
-  text-decoration: none;
   color: var(--a-color);
-  transition: 0.4s;
-  padding: 3px;
-  font-size: 1.5rem;
-  font-weight: bold;
+  font-weight: 700;
+  text-decoration: none;
+  text-underline-offset: 0.28em;
+  transition:
+    color 0.28s ease,
+    border-color 0.28s ease,
+    background-color 0.28s ease,
+    transform 0.28s ease;
 }
+
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--color-accent-warm);
+  outline-offset: 4px;
+}
+
+h1,
+h2,
+h3,
+p {
+  max-width: 70ch;
+}
+
+h1,
+h2 {
+  color: var(--color-heading);
+  line-height: 0.95;
+}
+
+h1 {
+  font-family: var(--font-display);
+  font-size: var(--fs-h1);
+  letter-spacing: -0.04em;
+}
+
+h2 {
+  font-size: var(--fs-h2);
+  font-weight: 850;
+  letter-spacing: -0.05em;
+}
+
+h3 {
+  color: var(--color-heading);
+  font-size: var(--fs-h3);
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+p {
+  font-size: var(--fs-body);
+}
+
 .logo {
+  display: block;
   width: 34px;
   height: 34px;
 }
 
+.container {
+  width: min(100% - clamp(2rem, 7vw, 5rem), var(--container-max));
+  margin-inline: auto;
+}
+
+.kicker {
+  color: var(--color-accent-warm);
+  font-size: var(--fs-kicker);
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.signal-rule {
+  display: block;
+  width: min(18rem, 70vw);
+  height: 0.55rem;
+  overflow: hidden;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(61, 255, 141, 0.82) 0 0.38rem,
+    transparent 0.38rem 0.68rem,
+    rgba(255, 179, 71, 0.66) 0.68rem 0.78rem,
+    transparent 0.78rem 1.35rem
+  );
+  border-radius: 999px;
+  opacity: 0.78;
+}
+
 @font-face {
   font-family: Bitcount;
-  src: url(./font/Bitcount-Regular.ttf);
+  src: url(./font/Bitcount-Regular.ttf) format('truetype');
+  font-display: swap;
 }
 
 @media (hover: hover) {
   a:hover {
-    /* background-color: var(--hover-color); */
     color: var(--hover-color);
   }
 }
 
-@media (min-width: 1024px) {
-  /* body {
-    display: flex;
-    place-items: left;
-    flex-direction: column;
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
-
-  #app {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    padding: 0 2rem;
-  } */
 }

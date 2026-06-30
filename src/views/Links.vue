@@ -5,7 +5,7 @@ import SignalStrip from '@/components/SignalStrip.vue'
 const links = [
   {
     title: 'Transcribe Website',
-    url: 'https://tc.tstio.com',
+    url: 'https://transcribe.tstio.com',
     description: 'Transcribe, learn, and stay creative.',
   },
 ]

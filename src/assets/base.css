@@ -61,6 +61,7 @@
     --section-gap: clamp(3rem, 8vw, 7rem);
     --nav-height: clamp(4.75rem, 8vw, 5.75rem);
     --footer-height: 4rem;
+    --page-pad: clamp(2.5rem, 7vw, 6rem);
 
     --fs-kicker: clamp(0.76rem, 1.4vw, 0.86rem);
     --fs-body: clamp(1rem, 1.7vw, 1.1rem);
@@ -68,6 +69,46 @@
     --fs-h1: clamp(3rem, 8.5vw, 7rem);
     --fs-h2: clamp(2rem, 5vw, 4rem);
     --fs-h3: clamp(1.15rem, 2.4vw, 1.55rem);
+}
+
+/* 矮视口（CSS 视口高 ≤850px，如 1366×768 笔记本、4K@200% 的浏览器窗口）：
+   --page-pad 在 768 高的视口里上下要吃掉 191px，占掉视口 25%，把内容挤出去 ——
+   Links 在 1366×768 下因此溢出 94px。压到 40px 后 80+515=595，留 17px 余量。
+   阈值取在屏幕分辨率高度之上，因为浏览器实际 CSS 视口还要减掉标签栏 / 地址栏。 */
+@media (max-height: 850px) {
+    :root {
+        --page-pad: clamp(1.5rem, 4vw, 2.5rem);
+    }
+}
+
+/* 大屏（2K/4K 27 寸）：上面的 clamp 在 vw 变宽时早已顶到上限，
+   1120px 容器在 2560/3840 宽下只占屏宽 29%~44%，内容会缩成屏幕中间一条。
+   这里显式抬升容器与整条字号阶梯，同时给 Performance 的双列布局腾出宽度。
+   分两档是因为 4K@100%(3840) 与 4K@150%/2K@100%(2560) 的可用宽度差近一倍。 */
+@media (min-width: 1600px) {
+    :root {
+        --container-max: 1440px;
+        --stage-max: 1040px;
+        --fs-kicker: 1rem;
+        --fs-body: 1.15rem;
+        --fs-display: 11rem;
+        --fs-h1: 7.5rem;
+        --fs-h2: 4.5rem;
+        --fs-h3: 1.8rem;
+    }
+}
+
+@media (min-width: 2200px) {
+    :root {
+        --container-max: 1760px;
+        --stage-max: 1200px;
+        --fs-kicker: 1.1rem;
+        --fs-body: 1.25rem;
+        --fs-display: 13rem;
+        --fs-h1: 8.5rem;
+        --fs-h2: 5rem;
+        --fs-h3: 2rem;
+    }
 }
 
 /*@media (prefers-color-scheme: dark) {*/

@@ -38,8 +38,11 @@ const links = [
 
 <style scoped>
 .links-page {
+  /* grid + align-content：大屏上内容远矮于视口时垂直居中，否则内容全挤在顶部、下方空一片 */
+  display: grid;
+  align-content: center;
   min-height: calc(100vh - var(--nav-height) - var(--footer-height));
-  padding-block: clamp(2.5rem, 7vw, 6rem);
+  padding-block: var(--page-pad);
 }
 
 .links-shell {

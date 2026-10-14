@@ -57,8 +57,29 @@ const isPlaying = ref(false)
 
 <style scoped>
 .performance-page {
+  /* --page-pad 由 base.css 提供（含矮视口的压缩档），这里只做高度预算 */
+  /* 视口减去导航、页脚、页面内边距后可用的内容高度 */
+  --content-budget: calc(100vh - var(--nav-height) - var(--footer-height) - 2 * var(--page-pad));
+  /* 单列时文案区(≈345px)与它到舞台的间隙(≈48px)要先从预算里扣掉 */
+  --copy-reserve: 25rem;
+  /* 状态条 + 上下内边距 + 边框：舞台外框比内层 854/480 内容盒多出的固定高度 */
+  --stage-chrome: 3.75rem;
+  /* 舞台宽度上限。舞台高度是由宽度按 854/480 反推出来的，只给宽度上限时，
+     矮视口下反推出的高度会把整页撑出视口（1920×1080 溢 254px、1440×900 溢 436px）。
+     所以这里同时按可用高度反推一个宽度上限，再和 --stage-max 取小。
+     max(20rem,…) 是下限，防止极矮视口把舞台压成零宽。 */
+  --stage-w: min(
+    var(--stage-max),
+    max(
+      20rem,
+      calc((var(--content-budget) - var(--copy-reserve) - var(--stage-chrome)) * 854 / 480)
+    )
+  );
+  /* grid + align-content：大屏上内容远矮于视口时垂直居中，避免全部堆在顶部留一大片空白 */
+  display: grid;
+  align-content: center;
   min-height: calc(100vh - var(--nav-height) - var(--footer-height));
-  padding-block: clamp(2.5rem, 7vw, 6rem);
+  padding-block: var(--page-pad);
 }
 
 .performance {
@@ -82,7 +103,7 @@ const isPlaying = ref(false)
 }
 
 .stage-frame {
-  width: min(100%, var(--stage-max));
+  width: min(100%, var(--stage-w));
   padding: clamp(0.55rem, 1.8vw, 1rem);
   overflow: hidden;
   background: #091d2e;
@@ -221,5 +242,30 @@ const isPlaying = ref(false)
     display: none;
   }
 
+}
+
+/* 桌面双列：文案与舞台并排。
+   单列时页面高度 = 文案 + 间隙 + 舞台 三段相加，而舞台高度由 854/480 从宽度反推，
+   1440×900 会撑到 1330px（溢 436px）、1024×768 撑到 1115px（溢 347px）。
+   改双列后高度取两列较高者，且 --copy-reserve 归零，舞台能吃到接近整屏的高度预算。
+   断点取 1024px：再窄文案列放不下标题。 */
+@media (min-width: 1024px) {
+  .performance-page {
+    --copy-reserve: 0px;
+  }
+
+  .performance {
+    /* 舞台列同时受 60% 与 --stage-w 约束，两者取小，保证舞台不会比可用高度允许的更宽，
+       也不会有列宽大过舞台、右侧留一段空档 */
+    grid-template-columns: minmax(0, 1fr) minmax(0, min(60%, var(--stage-w)));
+    align-items: center;
+    column-gap: clamp(2rem, 3.5vw, 4rem);
+  }
+
+  /* 文案列在此布局下只有约 350~640px 宽，沿用 --fs-h1 的 112px 会让 "Favourite"
+     单个词就超出列宽，所以标题按列宽单独收敛为侧栏尺寸。 */
+  .performance__copy h1 {
+    font-size: clamp(2.25rem, 2.6vw, 3.75rem);
+  }
 }
 </style>

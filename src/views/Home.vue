@@ -118,9 +118,10 @@ import SignalStrip from '@/components/SignalStrip.vue'
   line-height: 1;
   text-align: center;
   transform: translate(-50%, -50%) rotate(-15deg);
-  text-shadow:
-    1vw 1vw 30px rgba(61, 255, 141, 0.28),
-    -0.5vw -0.5vw 30px rgba(255, 179, 71, 0.16);
+  /* 这里原本挂两个 30px 大半径 text-shadow。60vw 字号下等于对一个约 3700×2400 的图层做两次模糊，
+     而元素整体 opacity 只有 0.035，阴影会被一起乘掉：等效透明度 ≤ 0.28×0.035 ≈ 1%，
+     通道偏移 ≤2/255，肉眼不可见。实测切回主页最差帧 25~30ms → 5~10ms，超 16ms 的长帧清零。
+     要恢复辉光得连着色调一起重做，不要直接加回 text-shadow。 */
   /*点击可以穿透*/
   pointer-events: none;
 }

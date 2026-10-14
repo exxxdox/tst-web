@@ -17,6 +17,12 @@ const year = new Date().getFullYear()
 
 <style scoped>
 .site-footer {
+  /* display:grid + align-content:center 让内层垂直居中，取代内层自己那份 min-height。
+     两层都写 min-height: var(--footer-height) 时，内层已占满 64px，外层 border-top
+     只能加在这 64px 之外 → footer 实际 64.8px，比页面 min-height 里预留的多 1px，
+     Performance / Links 因此常驻纵向滚动条（首页不渲染 footer，所以没这问题）。 */
+  display: grid;
+  align-content: center;
   min-height: var(--footer-height);
   border-top: 1px solid rgba(61, 255, 141, 0.12);
   background: rgba(3, 14, 25, 0.72);
@@ -26,7 +32,6 @@ const year = new Date().getFullYear()
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
-  min-height: var(--footer-height);
   gap: 1rem;
   color: rgba(178, 218, 204, 0.62);
   font-size: 0.72rem;

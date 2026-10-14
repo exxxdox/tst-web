@@ -30,7 +30,8 @@ const isPlaying = ref(false)
           aria-label="Play My Favourite Things performance"
           @click="isPlaying = true"
         >
-          <img src="/anime-jazz-guitar-cover.png" alt="" />
+          <!-- 封面图改用 WebP(1.75MB→80KB)，decoding=async 让解码不阻塞主线程 -->
+          <img src="/anime-jazz-guitar-cover.webp" alt="" decoding="async" />
           <span class="performance-poster__copy">
             <span class="performance-poster__play" aria-hidden="true">▶</span>
             <span>

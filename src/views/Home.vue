@@ -4,7 +4,14 @@ import SignalStrip from '@/components/SignalStrip.vue'
 <template>
   <main class="home-page">
     <div class="centered-rotated-text">TST</div>
-    <img class="fixed-bluegiant" src="/BlueGiant-head-sculpture.png" alt="sculpture" />
+    <!-- 首屏最大视觉元素，是 LCP 候选：改用 WebP(213KB→41KB)，并提权避免被其他资源挤后 -->
+    <img
+      class="fixed-bluegiant"
+      src="/BlueGiant-head-sculpture.webp"
+      alt="sculpture"
+      decoding="async"
+      fetchpriority="high"
+    />
 
     <section class="hero container" aria-labelledby="home-title">
       <p class="kicker">Music & Code</p>

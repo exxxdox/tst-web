@@ -92,7 +92,8 @@ p {
 
 @font-face {
   font-family: Bitcount;
-  src: url(./font/Bitcount-Regular.ttf) format('truetype');
+  /* 换用 woff2 + 拉丁子集(172KB→4KB)；体积低于 Vite 内联阈值，会被内联进 CSS，消除字体请求瀑布 */
+  src: url(./font/Bitcount-Regular.woff2) format('woff2');
   font-display: swap;
 }
 

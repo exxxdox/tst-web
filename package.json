@@ -16,7 +16,6 @@
   "dependencies": {
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
-    "@vueuse/core": "^13.9.0",
     "vue": "^3.5.18",
     "vue-router": "^4.6.3"
   },

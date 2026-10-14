@@ -37,7 +37,6 @@
 /*}*/
 
 :root {
-    --color-background: var(--vt-c-black);
     --color-background-soft: var(--vt-c-black-soft);
     --color-background-mute: var(--vt-c-black-mute);
 
@@ -48,9 +47,7 @@
     --color-text: var(--vt-c-text-dark-2);
 
     --color-accent: #3dff8d;
-    --color-accent-soft: rgba(61, 255, 141, 0.14);
     --color-accent-warm: #ffb347;
-    --color-accent-warm-soft: rgba(255, 179, 71, 0.14);
 
     --font-display: Bitcount, 'Courier New', monospace;
     --font-body: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
@@ -58,7 +55,6 @@
 
     --container-max: 1120px;
     --stage-max: 980px;
-    --section-gap: clamp(3rem, 8vw, 7rem);
     --nav-height: clamp(4.75rem, 8vw, 5.75rem);
     --footer-height: 4rem;
     --page-pad: clamp(2.5rem, 7vw, 6rem);

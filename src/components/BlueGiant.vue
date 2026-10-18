@@ -15,6 +15,8 @@ const FRAME_URLS = Object.keys(frameUrls)
   .sort()
   .map((key) => frameUrls[key])
 const FRAME_COUNT = FRAME_URLS.length
+// 模块求值即预取首帧：不必等组件挂载，图片请求可提前约 1s。
+const firstFrameImage = FRAME_COUNT ? loadImage(FRAME_URLS[0]) : null
 const DESIGN_W = 1280
 const DESIGN_H = 720
 // 采样网格宽度。640 宽再按步长 2 取点，单帧约 2.5 万个粒子，兼顾细节与本机帧率。
@@ -352,7 +354,7 @@ onMounted(async () => {
   document.documentElement.addEventListener('pointerleave', resetPointer)
 
   // 只等首帧：其余帧按播放进度提前异步加载，不阻塞首屏。
-  const firstImage = FRAME_COUNT ? await loadImage(FRAME_URLS[0]) : null
+  const firstImage = firstFrameImage ? await firstFrameImage : null
   if (!alive || !firstImage) return
   targetsCache.set(0, buildTargets(firstImage))
 

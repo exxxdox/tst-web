@@ -9,9 +9,7 @@ import SignalStrip from '@/components/SignalStrip.vue'
     <BlueGiant />
 
     <section class="hero container" aria-labelledby="home-title">
-      <!-- 小屏保留 hero 内的原标题位与绿色，大屏由左下角脚注承接 -->
-      <p class="kicker hero__kicker">Music & Code</p>
-      <h1 id="home-title" class="hero__mark">TST</h1>
+      <h1 id="home-title" class="hero__mark">Music &amp;<br />Code</h1>
       <div class="hero__actions" aria-label="Primary links">
         <AppLink class="hero__action hero__action--primary" :to="{ name: 'Performance' }">
           Watch performance
@@ -20,8 +18,6 @@ import SignalStrip from '@/components/SignalStrip.vue'
       </div>
       <SignalStrip input="Guitar" output="Code" />
     </section>
-    <!-- 脚注式标语：贴页面左下角，不参与首屏构图 -->
-    <p class="kicker home-footnote">Music & Code</p>
   </main>
 </template>
 
@@ -32,7 +28,6 @@ import SignalStrip from '@/components/SignalStrip.vue'
   --color-accent-warm: #ffb347;
   --color-heading: #ffffff;
 
-  position: relative;
   display: grid;
   min-height: calc(100vh - var(--nav-height));
   overflow: hidden;
@@ -49,35 +44,14 @@ import SignalStrip from '@/components/SignalStrip.vue'
 .hero__mark {
   max-width: none;
   color: #ffffff;
-  font-size: var(--fs-display);
+  /* 两行标题用 h1 阶梯，避免 display 字号过大压过粒子画 */
+  font-size: var(--fs-h1);
   /* 内层黑投影保证白粒子上的轮廓，外层绿/橙错位投影对应品牌双色 */
   text-shadow:
     0.025em 0.025em 0 rgba(0, 0, 0, 0.9),
     0.075em 0.075em 0 rgba(61, 255, 141, 0.35),
     -0.05em -0.05em 0 rgba(255, 179, 71, 0.42),
     0 0 42px rgba(0, 0, 0, 0.85);
-}
-
-.hero__kicker {
-  color: #3dff8d;
-  text-shadow:
-    0 1px 10px rgba(0, 0, 0, 0.9),
-    0 0 18px rgba(61, 255, 141, 0.35);
-}
-
-/* 左下角脚注：小字号、低亮度，只作为页面落款 */
-.home-footnote {
-  position: absolute;
-  bottom: clamp(1.25rem, 3vw, 2.25rem);
-  left: clamp(1rem, 4vw, 2rem);
-  z-index: 4;
-  /* 与左上角 TST 同一 Bitcount 字体，降低不透明度融入页脚 */
-  font-family: var(--font-display);
-  font-weight: 400;
-  letter-spacing: 0.12em;
-  color: #ffffff;
-  opacity: 0.55;
-  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.9);
 }
 
 .hero__actions {
@@ -183,28 +157,6 @@ import SignalStrip from '@/components/SignalStrip.vue'
   animation-delay: 0.15s;
 }
 
-.hero > :nth-child(4) {
-  animation-delay: 0.22s;
-}
-
-/* 大屏导航完整显示时，首页只留粒子画；标题仅对读屏保留，按钮与电平条不进入布局和 Tab 顺序 */
-@media (min-width: 761px) {
-  .hero__mark {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    white-space: nowrap;
-    clip-path: inset(50%);
-  }
-
-  .hero__kicker,
-  .hero__actions,
-  .hero :deep(.signal-strip) {
-    display: none;
-  }
-}
-
 @keyframes power-on {
   from {
     opacity: 0;
@@ -228,11 +180,6 @@ import SignalStrip from '@/components/SignalStrip.vue'
 
   .hero {
     align-self: start;
-  }
-
-  /* 小屏标语回到 hero 顶部，左下角脚注不显示 */
-  .home-footnote {
-    display: none;
   }
 
   .hero__actions {

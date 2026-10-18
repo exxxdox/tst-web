@@ -1,17 +1,12 @@
 <script setup>
+import BlueGiant from '@/components/BlueGiant.vue'
 import SignalStrip from '@/components/SignalStrip.vue'
 </script>
 <template>
   <main id="main-content" class="home-page" tabindex="-1">
     <div class="centered-rotated-text">TST</div>
-    <!-- 首屏最大视觉元素，是 LCP 候选：改用 WebP(213KB→41KB)，并提权避免被其他资源挤后 -->
-    <img
-      class="fixed-bluegiant"
-      src="/BlueGiant-head-sculpture.webp"
-      alt=""
-      decoding="async"
-      fetchpriority="high"
-    />
+    <!-- 首屏视觉改为 canvas 粒子画：装饰性内容不进可访问性树，也不作为 LCP 图片参与加载 -->
+    <BlueGiant />
 
     <section class="hero container" aria-labelledby="home-title">
       <p class="kicker">Music & Code</p>
@@ -126,22 +121,6 @@ import SignalStrip from '@/components/SignalStrip.vue'
   pointer-events: none;
 }
 
-.fixed-bluegiant {
-  opacity: 0.2;
-  position: fixed;
-  right: 0; /* 贴右侧浏览器边缘 */
-  top: 0; /* 贴顶部视口 */
-  z-index: 1;
-  height: 100vh; /* 以视口高度为准，上下贴紧 */
-  width: auto; /* 宽度按高度与图片自然比例自适应，不限制在右侧半屏内 */
-  min-width: 0; /* 不设最小宽度，避免被撑成固定宽度框 */
-  max-width: none; /* 不限制最大宽度，由浏览器视口左侧裁切多余部分 */
-  object-fit: contain; /* 高度撑满后按比例显示，水平方向由视口裁切 */
-  object-position: top right;
-  filter: saturate(0.82) contrast(1.08) drop-shadow(-2rem 2rem 4rem rgba(0, 0, 0, 0.4));
-  pointer-events: none;
-}
-
 .hero > * {
   animation: power-on 0.52s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -201,22 +180,6 @@ import SignalStrip from '@/components/SignalStrip.vue'
     white-space: nowrap;
     pointer-events: none;
   }
-
-  /* 雕塑作为右下角受控点缀 */
-  .fixed-bluegiant {
-    top: auto;
-    right: 0;
-    bottom: 0;
-    width: 70%; /* 百分比宽度避免横向溢出 */
-    max-width: 320px;
-    height: auto;
-    max-height: 45vh;
-    min-width: 0; /* 覆盖桌面端 526px，防止横向溢出 */
-    object-fit: contain;
-    object-position: bottom right;
-    opacity: 0.18;
-    pointer-events: none;
-  }
 }
 
 /* 超窄屏微调：进一步收敛尺寸保持精致 */
@@ -224,13 +187,6 @@ import SignalStrip from '@/components/SignalStrip.vue'
   .centered-rotated-text {
     font-size: 46vw;
     opacity: 0.025;
-  }
-
-  .fixed-bluegiant {
-    width: 80%;
-    max-width: 240px;
-    max-height: 38vh;
-    opacity: 0.16;
   }
 }
 </style>

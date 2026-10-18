@@ -41,7 +41,7 @@ URL 规则由 `src/utils/externalUrl.js` 统一处理。`ExternalLinkCard` 遇�
 ## 目录职责
 
 - `src/views/` — 页面级组件（路由目标）**以及 `TheNavigation.vue`**。注意导航虽在 `views/` 下，但不在路由表里，由 `App.vue` 直接引入。
-- `src/components/` — 复用组件：`AppLink`、`ExternalLinkCard`、`SignalStrip`、`TheFooter`。
+- `src/components/` — 复用组件：`AppLink`、`BlueGiant`、`ExternalLinkCard`、`SignalStrip`、`TheFooter`。
 - `src/assets/` — 全局样式 + 自托管字体。
 - `src/utils/` — 无浏览器状态的共享工具及 Node 内置测试。
 
@@ -60,7 +60,7 @@ URL 规则由 `src/utils/externalUrl.js` 统一处理。`ExternalLinkCard` 遇�
 
 这部分是刻意优化过的（见 `6736038`），改动时别退化：
 
-- 图片一律 WebP，放 `public/`。Home 的雕塑图是 LCP 候选，保留 `fetchpriority="high"`。
+- Home 首屏的黑白表现主义画作由 `BlueGiant.vue` 把 `public/hand-study.webp` 采样成 Canvas 粒子并做缓动，没有 LCP 图片；其他图片仍一律 WebP，放 `public/`。
 - 大媒体按需加载：`Performance.vue` 先渲染 poster 按钮，点击后才挂载 bilibili iframe（带 `sandbox`）。
 - 源码里解释性能决策的注释（体积对比数字）要跟着代码一起改，别删了留下过时数字。
 - `ExternalLinkCard` 的预览图走第三方 `api.microlink.io`，靠 `@error` 回退到 TST 占位块——改这块要保留失败路径。

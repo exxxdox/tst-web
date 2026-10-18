@@ -11,10 +11,6 @@ import SignalStrip from '@/components/SignalStrip.vue'
     <section class="hero container" aria-labelledby="home-title">
       <p class="kicker">Music & Code</p>
       <h1 id="home-title" class="hero__mark">TST</h1>
-      <p class="hero__intro">
-        Rory builds small web instruments and records guitar performances — a personal stage for
-        sound, tools, and experiments.
-      </p>
       <div class="hero__actions" aria-label="Primary links">
         <AppLink class="hero__action hero__action--primary" :to="{ name: 'Performance' }">
           Watch performance
@@ -28,6 +24,11 @@ import SignalStrip from '@/components/SignalStrip.vue'
 
 <style scoped>
 .home-page {
+  /* 首页背景是黑白粒子画：用品牌绿+橙做小面积强调，主体仍是黑白灰 */
+  --color-accent: #3dff8d;
+  --color-accent-warm: #ffb347;
+  --color-heading: #ffffff;
+
   display: grid;
   min-height: calc(100vh - var(--nav-height));
   overflow: hidden;
@@ -43,20 +44,21 @@ import SignalStrip from '@/components/SignalStrip.vue'
 
 .hero__mark {
   max-width: none;
-  color: var(--color-heading);
+  color: #ffffff;
   font-size: var(--fs-display);
+  /* 内层黑投影保证白粒子上的轮廓，外层绿/橙错位投影对应品牌双色 */
   text-shadow:
-    0.06em 0.06em 0 rgba(61, 255, 141, 0.42),
-    -0.035em -0.035em 0 rgba(255, 179, 71, 0.46),
-    0 0 48px rgba(61, 255, 141, 0.26);
+    0.025em 0.025em 0 rgba(0, 0, 0, 0.9),
+    0.075em 0.075em 0 rgba(61, 255, 141, 0.35),
+    -0.05em -0.05em 0 rgba(255, 179, 71, 0.42),
+    0 0 42px rgba(0, 0, 0, 0.85);
 }
 
-.hero__intro {
-  max-width: 42rem;
-  color: rgba(222, 255, 238, 0.84);
-  font-size: clamp(1.1rem, 2.4vw, 1.45rem);
-  font-weight: 650;
-  line-height: 1.45;
+.kicker {
+  color: #3dff8d;
+  text-shadow:
+    0 1px 10px rgba(0, 0, 0, 0.9),
+    0 0 18px rgba(61, 255, 141, 0.35);
 }
 
 .hero__actions {
@@ -73,32 +75,61 @@ import SignalStrip from '@/components/SignalStrip.vue'
   gap: 0.65rem;
   min-height: 3rem;
   padding: 0.78rem 1.05rem;
-  color: var(--color-heading);
-  background: #0a2032;
-  border: 1px solid rgba(61, 255, 141, 0.24);
+  color: #f5f5f5;
+  /* 半透明黑底 + 白描边：压在亮粒子上按钮边界仍然清晰 */
+  background: rgba(8, 8, 8, 0.72);
+  border: 1px solid rgba(61, 255, 141, 0.34);
   border-radius: 7px;
   box-shadow:
-    0 12px 28px rgba(0, 8, 20, 0.22),
-    0 1px 0 rgba(255, 255, 255, 0.05) inset;
+    0 12px 28px rgba(0, 0, 0, 0.45),
+    0 0 20px rgba(61, 255, 141, 0.12),
+    0 1px 0 rgba(255, 255, 255, 0.08) inset;
+  backdrop-filter: blur(4px);
 }
 
 .hero__action--primary {
-  color: #06111f;
-  background: var(--color-accent);
-  border-color: rgba(222, 255, 238, 0.4);
+  color: #150d02;
+  /* 暖色只给主 CTA，黑白画面上形成唯一视觉锚点 */
+  background: #ffb347;
+  border-color: #ffd39a;
+  box-shadow:
+    0 12px 30px rgba(0, 0, 0, 0.5),
+    0 0 24px rgba(255, 179, 71, 0.28),
+    0 0 44px rgba(61, 255, 141, 0.14);
+}
+
+/* 全局 a:hover 会把文字刷成 --hover-color（首页为白），暖底上必须保持深色文字 */
+.hero__action--primary:hover {
+  color: #150d02;
 }
 
 .hero__action--primary::after {
   width: 0.45rem;
   height: 0.45rem;
   content: '';
-  background: var(--color-accent-warm);
+  /* 品牌绿作为电源指示灯，和暖橙主按钮形成双色 */
+  background: #3dff8d;
   border-radius: 50%;
-  box-shadow: 0 0 0.55rem rgba(255, 179, 71, 0.64);
+  box-shadow: 0 0 0.6rem rgba(61, 255, 141, 0.75);
 }
 
 .hero__action:hover {
   transform: translateY(-2px);
+}
+
+/* SignalStrip 内部有绿色/暖色硬编码，首页用 :deep 覆盖成黑白灰并保留高对比 */
+.home-page :deep(.signal-strip) {
+  color: rgba(245, 245, 245, 0.8);
+  background: rgba(0, 0, 0, 0.62);
+  border-color: rgba(61, 255, 141, 0.3);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.05) inset,
+    0 0 22px rgba(61, 255, 141, 0.12);
+}
+
+.home-page :deep(.signal-strip__meter i:nth-child(4n)) {
+  background: #ffb347;
+  box-shadow: 0 0 0.55rem rgba(255, 179, 71, 0.4);
 }
 
 .centered-rotated-text {
@@ -135,10 +166,6 @@ import SignalStrip from '@/components/SignalStrip.vue'
 
 .hero > :nth-child(4) {
   animation-delay: 0.22s;
-}
-
-.hero > :nth-child(5) {
-  animation-delay: 0.29s;
 }
 
 @keyframes power-on {

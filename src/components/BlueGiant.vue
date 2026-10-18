@@ -325,14 +325,9 @@ function resize() {
   cssWidth = rect.width
   cssHeight = rect.height
 
-  const artAspect = DESIGN_W / DESIGN_H
-  const viewAspect = cssWidth / cssHeight
-  // 常规/窄屏用 cover 铺满，裁掉两侧；比原图更宽的屏幕改 contain，
-  // 否则按宽度放大后上下会切掉主体。
-  scale =
-    viewAspect > artAspect
-      ? Math.min(cssWidth / DESIGN_W, cssHeight / DESIGN_H)
-      : Math.max(cssWidth / DESIGN_W, cssHeight / DESIGN_H)
+  // 统一 cover：超宽屏也按宽度铺满，宁可裁掉少量上下，也不在左右留黑边。
+  // 019 等帧底部的白色舞台需要贴住左右边界，contain 会把它截成两列黑条。
+  scale = Math.max(cssWidth / DESIGN_W, cssHeight / DESIGN_H)
 
   // 竖屏可见宽度太窄，把中心从画幅中点移到手部（画面焦点），避免手被裁掉。
   const focusX = cssWidth < 760 ? DESIGN_W * 0.34 : DESIGN_W / 2

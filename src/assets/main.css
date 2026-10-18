@@ -97,6 +97,11 @@ p {
   font-display: swap;
 }
 
+/* 超宽视口下粒子画按 contain 缩放，左右会露出底色；首页强制黑底，露出的部分与画面一致。 */
+body:has(.home-page) {
+  background: #000000;
+}
+
 @media (hover: hover) {
   a:hover {
     color: var(--hover-color);

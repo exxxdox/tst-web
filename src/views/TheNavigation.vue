@@ -174,7 +174,34 @@ export default {
 }
 /* 透明背景下给链接加一层暗色投影，压在亮部粒子上仍然可读。 */
 .nav-container.nav--home .nav-link {
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.85);
+  color: rgba(255, 255, 255, 0.88);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.95);
+}
+/* 首页粒子画是黑白灰：品牌字与导航链接统一去色。 */
+.nav-container.nav--home .brand-link {
+  color: #ffffff;
+  /* 黑白错位投影替代原绿/橙荧光，保证压在亮粒子上仍有轮廓 */
+  text-shadow:
+    0.025em 0.025em 0 rgba(0, 0, 0, 0.9),
+    0.08em 0.08em 0 rgba(255, 255, 255, 0.22),
+    -0.05em -0.05em 0 rgba(120, 120, 120, 0.4),
+    0 0 22px rgba(0, 0, 0, 0.9);
+}
+.nav-container.nav--home .nav-link.router-link-active {
+  color: #ffffff;
+  /* 与首页唯一暖色强调点保持一致 */
+  border-bottom-color: #ffb347;
+}
+.nav-container.nav--home .social-link {
+  background: rgba(0, 0, 0, 0.42);
+  border-color: rgba(255, 255, 255, 0.32);
+}
+.nav-container.nav--home .hamburger {
+  background: rgba(0, 0, 0, 0.42);
+  border-color: rgba(255, 255, 255, 0.32);
+}
+.nav-container.nav--home .hamburger span {
+  background-color: #ffffff;
 }
 .left {
   display: grid;

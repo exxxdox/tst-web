@@ -13,10 +13,12 @@ pnpm install
 pnpm dev          # vite dev server
 pnpm build        # vite build → dist/
 pnpm preview      # 预览 dist
-pnpm format       # prettier --write src/  ← 只覆盖 src/，public/ 与根配置不格式化
+pnpm test         # Node 内置测试；覆盖外链、chunk 恢复和焦点循环
+pnpm check        # test + build + Prettier 检查
+pnpm format       # 格式化 src/、README 与根配置
 ```
 
-- **没有 lint、没有 typecheck、没有测试框架、没有 CI**（`.github/` 已删除）。别假设 `pnpm test` / `pnpm lint` 存在，也别为了"补测试"引入测试栈——本项目从未配置过。
+- **没有 lint、typecheck、第三方测试框架或 CI**（`.github/` 已删除）。测试使用 Node 内置 `node:test`，别为了扩覆盖率引入测试栈。
 - 包管理器锁定 `pnpm@11.8.0`，Node `^20.19.0 || >=22.12.0`。
 
 ## 架构
@@ -25,12 +27,14 @@ pnpm format       # prettier --write src/  ← 只覆盖 src/，public/ 与根�
 
 `App.vue` 是唯一外壳，四个东西：`TheNavigation`、`RouterView`、`TheFooter`（`$route.name === 'Home'` 时隐藏）、以及 Vercel 的 `Analytics` / `SpeedInsights`。
 
-**路由**：`createWebHashHistory` → URL 形如 `/#/links`。三条路由（Home / Performance / Links）全部懒加载。hash 模式是为静态托管选的，改成 history 模式前必须先确认托管方 SPA fallback。
+**路由**：`createWebHashHistory` → URL 形如 `/#/links`。三条页面路由（Home / Performance / Links）全部懒加载，catch-all 重定向 Home。`main.js` 监听 `vite:preloadError`，新版部署使旧 chunk 失效时只刷新一次。hash 模式是为静态托管选的，改成 history 模式前必须先确认托管方 SPA fallback。
 
 **`AppLink.vue` 是唯一的链接原语**，已在 `main.js` 全局注册，页面里直接用、不用 import：
 
-- `to` 是以 `http` 开头的字符串 → 渲染成 `<a target="_blank" rel="noopener">`
+- `to` 是合法的绝对 HTTP(S) URL → 渲染成 `<a target="_blank" rel="noopener noreferrer">`
 - 其他 → 渲染成 `RouterLink`，透传全部 `RouterLink.props`
+
+URL 规则由 `src/utils/externalUrl.js` 统一处理。`ExternalLinkCard` 遇到无效 URL 时必须降级成不可点击卡片，不能让页面渲染失败。
 
 所以站内跳转一律写 `:to="{ name: 'Performance' }"`，外链写字符串 URL。页面里裸写 `<a>` 会丢掉 hover / `router-link-active` 样式。
 
@@ -39,6 +43,7 @@ pnpm format       # prettier --write src/  ← 只覆盖 src/，public/ 与根�
 - `src/views/` — 页面级组件（路由目标）**以及 `TheNavigation.vue`**。注意导航虽在 `views/` 下，但不在路由表里，由 `App.vue` 直接引入。
 - `src/components/` — 复用组件：`AppLink`、`ExternalLinkCard`、`SignalStrip`、`TheFooter`。
 - `src/assets/` — 全局样式 + 自托管字体。
+- `src/utils/` — 无浏览器状态的共享工具及 Node 内置测试。
 
 ## 样式系统
 
@@ -46,7 +51,7 @@ pnpm format       # prettier --write src/  ← 只覆盖 src/，public/ 与根�
 
 改配色、间距、字号 → 改 `base.css` 变量，别在组件里硬编码。组件内仍散落着硬编码色值，属于迁移中间态。
 
-- **仅暗色主题**：`base.css` 里的 light 分支和 `prefers-color-scheme` 块都被注释掉了，不要"顺手恢复"。
+- **仅暗色主题**：`base.css` 不保留 light 变量或分支，不要"顺手恢复"。
 - 视觉语汇是"录音棚设备"：`SignalStrip`（input → 电平条 → output）三个页面都在用，新增页面保持这套语言。
 - 主断点是 **760px**（导航折叠、Home 重排、各页 padding 都用它），另有 540 / 680 / 900 / 380px 的局部微调。
 - 字体 Bitcount 自托管 woff2 拉丁子集，体积低于 Vite 内联阈值 → 会被打进 CSS。别把它挪到 `public/`，会重新引入字体请求瀑布。

@@ -2,13 +2,13 @@
 import SignalStrip from '@/components/SignalStrip.vue'
 </script>
 <template>
-  <main class="home-page">
+  <main id="main-content" class="home-page" tabindex="-1">
     <div class="centered-rotated-text">TST</div>
     <!-- 首屏最大视觉元素，是 LCP 候选：改用 WebP(213KB→41KB)，并提权避免被其他资源挤后 -->
     <img
       class="fixed-bluegiant"
       src="/BlueGiant-head-sculpture.webp"
-      alt="sculpture"
+      alt=""
       decoding="async"
       fetchpriority="high"
     />

@@ -1,4 +1,6 @@
 <script>
+import { getFocusLoopTarget } from '@/utils/focusTrap.js'
+
 export default {
   name: 'TheNavigation',
   data() {
@@ -29,20 +31,51 @@ export default {
   },
   methods: {
     toggle() {
-      this.isOpen = !this.isOpen
+      if (this.isOpen) {
+        this.close()
+        return
+      }
+
+      this.isOpen = true
+      this.$nextTick(() => this.$refs.drawerClose?.focus())
     },
-    close() {
+    close({ restoreFocus = true } = {}) {
+      const wasOpen = this.isOpen
       this.isOpen = false
+
+      if (wasOpen && restoreFocus) {
+        this.$nextTick(() => this.$refs.menuButton?.focus())
+      }
     },
     onKeydown(e) {
-      if (e.key === 'Escape' && this.isOpen) {
+      if (!this.isOpen) return
+
+      if (e.key === 'Escape') {
         this.close()
+      } else if (e.key === 'Tab') {
+        this.trapDrawerFocus(e)
       }
     },
     onResize() {
       if (window.innerWidth > 760 && this.isOpen) {
-        this.close()
+        this.close({ restoreFocus: false })
       }
+    },
+    trapDrawerFocus(e) {
+      const focusable = this.$refs.drawer.querySelectorAll('a[href], button:not([disabled])')
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+      const target = getFocusLoopTarget({
+        activeElement: document.activeElement,
+        container: this.$refs.drawer,
+        first,
+        last,
+        shiftKey: e.shiftKey,
+      })
+
+      if (!target) return
+      e.preventDefault()
+      target.focus()
     },
   },
 }
@@ -50,11 +83,11 @@ export default {
 
 <template>
   <header class="nav-container">
-    <div class="left">
+    <nav class="left" aria-label="Primary navigation">
       <AppLink class="brand-link" :to="{ name: 'Home' }" aria-label="TST home">TST</AppLink>
       <AppLink class="nav-link" :to="{ name: 'Performance' }">Performance</AppLink>
       <AppLink class="nav-link" :to="{ name: 'Links' }">Links</AppLink>
-    </div>
+    </nav>
     <div class="foot" style="gap: 20px">
       <AppLink class="social-link" to="https://github.com/exxxdox">
         <img alt="github logo" class="logo" src="/svg/github.svg" />
@@ -65,6 +98,7 @@ export default {
     </div>
 
     <button
+      ref="menuButton"
       class="hamburger"
       type="button"
       aria-label="Toggle navigation menu"
@@ -77,22 +111,25 @@ export default {
       <span></span>
     </button>
 
-    <div
-      class="drawer-backdrop"
-      :class="{ open: isOpen }"
-      @click="close"
-      aria-hidden="true"
-    ></div>
+    <div class="drawer-backdrop" :class="{ open: isOpen }" @click="close" aria-hidden="true"></div>
 
     <aside
       id="mobile-drawer"
+      ref="drawer"
       class="drawer"
       :class="{ open: isOpen }"
       role="dialog"
       aria-modal="true"
       :aria-hidden="isOpen ? 'false' : 'true'"
+      :inert="isOpen ? undefined : ''"
     >
-      <button class="drawer-close" type="button" aria-label="Close menu" @click="close">
+      <button
+        ref="drawerClose"
+        class="drawer-close"
+        type="button"
+        aria-label="Close menu"
+        @click="close"
+      >
         ×
       </button>
       <nav class="drawer-nav">
@@ -124,8 +161,7 @@ export default {
   margin: 0;
   padding-inline: clamp(1rem, 4vw, 2rem);
   background:
-    linear-gradient(90deg, rgba(6, 17, 31, 0.9), rgba(8, 24, 42, 0.64)),
-    rgba(6, 17, 31, 0.78);
+    linear-gradient(90deg, rgba(6, 17, 31, 0.9), rgba(8, 24, 42, 0.64)), rgba(6, 17, 31, 0.78);
   border-bottom: 1px solid rgba(61, 255, 141, 0.1);
   backdrop-filter: blur(16px);
 }
@@ -243,7 +279,9 @@ export default {
     width: 20px;
     height: 2px;
     background-color: var(--hover-color);
-    transition: transform 0.25s ease, opacity 0.2s ease;
+    transition:
+      transform 0.25s ease,
+      opacity 0.2s ease;
     transform-origin: center;
   }
   .hamburger[aria-expanded='true'] span:nth-child(1) {

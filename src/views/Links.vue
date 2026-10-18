@@ -12,13 +12,14 @@ const links = [
 </script>
 
 <template>
-  <main class="links-page">
+  <main id="main-content" class="links-page" tabindex="-1">
     <section class="links-shell container" aria-labelledby="links-title">
       <div class="links-head">
         <p class="kicker">Outboard gear</p>
         <h1 id="links-title">Web instruments</h1>
         <p>
-          A short patch bay for projects, profiles, and web tools that sit outside this little stage.
+          A short patch bay for projects, profiles, and web tools that sit outside this little
+          stage.
         </p>
         <SignalStrip input="Tool bus" output="Online" />
       </div>

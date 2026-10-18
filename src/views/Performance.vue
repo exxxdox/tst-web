@@ -9,7 +9,7 @@ const isPlaying = ref(false)
 </script>
 
 <template>
-  <main class="performance-page">
+  <main id="main-content" class="performance-page" tabindex="-1">
     <section class="performance container" aria-labelledby="performance-title">
       <div class="performance__copy">
         <p class="kicker">Live take / guitar cover</p>
@@ -48,7 +48,7 @@ const isPlaying = ref(false)
           allowfullscreen
           scrolling="no"
           frameborder="0"
-          sandbox="allow-same-origin allow-forms allow-scripts allow-popups allow-popups-to-escape-sandbox"
+          sandbox="allow-same-origin allow-forms allow-scripts allow-popups"
         ></iframe>
       </div>
     </section>
@@ -150,9 +150,7 @@ const isPlaying = ref(false)
   overflow: hidden;
   padding: 0;
   color: var(--color-heading);
-  background:
-    linear-gradient(90deg, rgba(2, 13, 24, 0.92), rgba(2, 13, 24, 0.26)),
-    #020d18;
+  background: linear-gradient(90deg, rgba(2, 13, 24, 0.92), rgba(2, 13, 24, 0.26)), #020d18;
   border: 0;
   border-radius: 6px;
   cursor: pointer;
@@ -179,7 +177,9 @@ const isPlaying = ref(false)
   object-position: center;
   opacity: 0.72;
   filter: saturate(0.72) contrast(1.2);
-  transition: opacity 0.28s ease, transform 0.28s ease;
+  transition:
+    opacity 0.28s ease,
+    transform 0.28s ease;
 }
 
 .performance-poster__copy {
@@ -241,7 +241,6 @@ const isPlaying = ref(false)
   .stage-frame__status span:last-child {
     display: none;
   }
-
 }
 
 /* 桌面双列：文案与舞台并排。

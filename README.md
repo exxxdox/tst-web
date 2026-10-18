@@ -1,29 +1,20 @@
-# vue-1
+# TST Website
 
-This template should help get you started developing with Vue 3 in Vite.
+TST / Rory 的个人站，用于展示吉他演奏和 Web 工具。项目是 Vue 3 + Vite 纯前端单页应用。
 
-## Recommended IDE Setup
-
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
+## 开发
 
 ```sh
 pnpm install
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
 pnpm dev
+pnpm test
+pnpm check
 ```
 
-### Compile and Minify for Production
+`pnpm build` 生成 `dist/`，`pnpm preview` 本地预览生产产物。
 
-```sh
-pnpm build
-```
+## 路由与部署
+
+站点使用 hash 路由，可直接部署到 Vercel 等静态托管服务，无需 SPA fallback。生产环境接入 Vercel Analytics 和 Speed Insights。
+
+Links 页通过 Microlink 获取外链截图；Performance 页仅在用户点击后加载 Bilibili 播放器。

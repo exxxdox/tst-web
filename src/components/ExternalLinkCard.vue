@@ -1,6 +1,8 @@
 <script setup>
 import { ref } from 'vue'
 
+import { parseHttpUrl } from '@/utils/externalUrl.js'
+
 const props = defineProps({
   title: {
     type: String,
@@ -16,15 +18,26 @@ const props = defineProps({
   },
 })
 
-const host = new URL(props.url).host
-const hasPreview = ref(true)
-const previewUrl = `https://api.microlink.io/?url=${encodeURIComponent(
-  props.url,
-)}&screenshot=true&meta=false&embed=screenshot.url`
+const parsedUrl = parseHttpUrl(props.url)
+const href = parsedUrl?.href
+const host = parsedUrl?.host ?? 'Link unavailable'
+const hasPreview = ref(Boolean(parsedUrl))
+const previewUrl = parsedUrl
+  ? `https://api.microlink.io/?url=${encodeURIComponent(
+      parsedUrl.href,
+    )}&screenshot=true&meta=false&embed=screenshot.url`
+  : ''
 </script>
 
 <template>
-  <a class="link-card" :href="url" target="_blank" rel="noopener noreferrer">
+  <component
+    :is="href ? 'a' : 'article'"
+    class="link-card"
+    :href="href"
+    :target="href ? '_blank' : undefined"
+    :rel="href ? 'noopener noreferrer' : undefined"
+    :aria-disabled="href ? undefined : 'true'"
+  >
     <span class="preview-wrap">
       <img
         v-if="hasPreview"
@@ -42,8 +55,10 @@ const previewUrl = `https://api.microlink.io/?url=${encodeURIComponent(
       <span v-if="description" class="description">{{ description }}</span>
     </span>
 
-    <span class="visit" aria-hidden="true">Try it <span>→</span></span>
-  </a>
+    <span class="visit" aria-hidden="true">
+      {{ href ? 'Try it' : 'Unavailable' }} <span v-if="href">→</span>
+    </span>
+  </component>
 </template>
 
 <style scoped>
@@ -91,13 +106,8 @@ const previewUrl = `https://api.microlink.io/?url=${encodeURIComponent(
   aspect-ratio: 16 / 10;
   overflow: hidden;
   background:
-    repeating-linear-gradient(
-      90deg,
-      rgba(61, 255, 141, 0.1) 0 0.5rem,
-      transparent 0.5rem 0.9rem
-    ),
-    linear-gradient(135deg, rgba(255, 179, 71, 0.14), transparent),
-    var(--color-background-mute);
+    repeating-linear-gradient(90deg, rgba(61, 255, 141, 0.1) 0 0.5rem, transparent 0.5rem 0.9rem),
+    linear-gradient(135deg, rgba(255, 179, 71, 0.14), transparent), var(--color-background-mute);
   border: 1px solid rgba(61, 255, 141, 0.1);
   border-radius: 6px;
 }

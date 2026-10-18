@@ -60,7 +60,7 @@ URL 规则由 `src/utils/externalUrl.js` 统一处理。`ExternalLinkCard` 遇�
 
 这部分是刻意优化过的（见 `6736038`），改动时别退化：
 
-- Home 首屏的黑白表现主义画作由 `BlueGiant.vue` 把 `public/hand-study.webp` 采样成 Canvas 粒子并做缓动，没有 LCP 图片；其他图片仍一律 WebP，放 `public/`。
+- Home 首屏的黑白表现主义画作由 `BlueGiant.vue` 把 `src/assets/hand-study/*.webp` 九张抽帧交替采样成 Canvas 粒子云并做缓动（每张约 4.2s，切帧时粒子飞向新目标；帧顺序由文件名决定，`import.meta.glob` 自动收集），没有 LCP 图片；其他图片仍一律 WebP，放 `public/`。
 - 大媒体按需加载：`Performance.vue` 先渲染 poster 按钮，点击后才挂载 bilibili iframe（带 `sandbox`）。
 - 源码里解释性能决策的注释（体积对比数字）要跟着代码一起改，别删了留下过时数字。
 - `ExternalLinkCard` 的预览图走第三方 `api.microlink.io`，靠 `@error` 回退到 TST 占位块——改这块要保留失败路径。

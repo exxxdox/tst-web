@@ -1,20 +1,22 @@
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from 'vue'
-import { getCycleIndex } from '@/utils/particleCycle'
+import { assignParticleTargets, getCycleIndex } from '@/utils/particleCycle'
 
 const canvas = ref(null)
-// 同一支演奏视频的黑白抽帧，已统一转换为 1280×725 的 WebP。
+// assets/frames 是同一支演奏视频的顺序抽帧，文件名零填充，按字典序即为播放顺序。
 // 用 Vite 的 glob 按文件名收集帧：增删或调整顺序只需改文件名，不用改代码。
-const frameUrls = import.meta.glob('../assets/hand-study/*.webp', {
+// 统一为 640 宽的 WebP，其余源图不放进该目录，避免误打包。
+const frameUrls = import.meta.glob('../assets/frames/*.webp', {
   eager: true,
   query: '?url',
   import: 'default',
 })
-const IMAGE_URLS = Object.keys(frameUrls)
+const FRAME_URLS = Object.keys(frameUrls)
   .sort()
   .map((key) => frameUrls[key])
+const FRAME_COUNT = FRAME_URLS.length
 const DESIGN_W = 1280
-const DESIGN_H = 725
+const DESIGN_H = 720
 // 采样网格宽度。640 宽再按步长 2 取点，单帧约 2.5 万个粒子，兼顾细节与本机帧率。
 const SAMPLE_W = 640
 const SAMPLE_STEP = 2
@@ -26,8 +28,10 @@ const ALPHA_LEVELS = 16
 // 鼠标排斥半径（设计空间像素）。
 const REPEL_RADIUS = 90
 const MAX_BACKING = 1800
-// 每张图停留时长；9 张循环一轮约 38 秒。
-const DWELL_MS = 4200
+// 每张图停留 1s；轮播时长随帧数变化。
+const DWELL_MS = 1000
+// 提前 4 帧（约 4s）加载与采样，给网络留预算。
+const PREFETCH_AHEAD = 4
 
 let ctx = null
 let cssWidth = 0
@@ -42,15 +46,19 @@ let reducedMotion = false
 let alive = true
 let startTime = 0
 let currentIndex = -1
-let frames = []
+let appliedIndex = -1
 
 // 粒子池：所有帧共用同一批粒子，切帧时只换目标点，粒子云会自然重组。
-// 池长按实际采样点上限动态增长，不为 10 帧分别常驻粒子对象。
+// 池长按实际采样点上限动态增长，不为所有帧分别常驻粒子对象。
 const pool = []
 // 每帧重建绘制分桶：alpha 随切帧淡入淡出，不能像单图实现那样静态分组。
 const renderBuckets = Array.from({ length: ALPHA_LEVELS }, () => [])
-// 只缓存当前帧与下一帧的采样点，控制内存。
+// 只缓存当前帧与下一帧的采样点，不驻留解码后的位图：
+// 帧数较多时全部解码常驻会占用上百 MB 位图内存。
 const targetsCache = new Map()
+// 正在加载与加载失败的帧，避免同一帧重复请求。
+const pendingTargets = new Set()
+const failedTargets = new Set()
 
 const pointer = { x: -9999, y: -9999 }
 
@@ -101,9 +109,9 @@ function buildTargets(image) {
 
 function createParticle(target) {
   return {
-    // 新粒子从目标附近散开淡入，避免切帧时凭空冒出。
-    x: target.x + (Math.random() - 0.5) * 120,
-    y: target.y + (Math.random() - 0.5) * 120,
+    // 新粒子从目标就近微幅散开并淡入，避免切帧时远距离突兀飞入。
+    x: target.x + (Math.random() - 0.5) * 36,
+    y: target.y + (Math.random() - 0.5) * 36,
     vx: 0,
     vy: 0,
     targetX: target.x,
@@ -114,38 +122,54 @@ function createParticle(target) {
     level: target.level,
     alpha: 0,
     active: true,
-    ease: 0.08 + Math.random() * 0.06,
+    // 提高弹簧刚度配合 0.62 阻尼（接近临界阻尼），切帧收敛更快且不在终点反复回弹。
+    ease: 0.14 + Math.random() * 0.06,
   }
 }
 
-// 把新帧的采样点分配给粒子池：多出的点扩池并淡入，少掉的粒子原地淡出。
+// 按空间分位数把新帧目标点就近分配给粒子池，消除跨屏乱飞和原地残影。
 function applyTargets(points) {
-  while (pool.length < points.length) pool.push(createParticle(points[pool.length]))
+  assignParticleTargets(pool, points, createParticle, DESIGN_W)
+}
 
-  for (let i = 0; i < pool.length; i += 1) {
-    const particle = pool[i]
-    const target = points[i]
-    if (!target) {
-      particle.active = false
-      continue
-    }
-    particle.targetX = target.x
-    particle.targetY = target.y
-    particle.targetSize = target.size
-    particle.targetLevel = target.level
-    particle.active = true
+function wrapIndex(index) {
+  const count = FRAME_COUNT || 1
+  return ((index % count) + count) % count
+}
+
+// 只保留当前帧与预取窗口内的采样点，其余立即释放。
+function pruneTargets(keepIndex) {
+  const keep = new Set()
+  for (let k = 0; k <= PREFETCH_AHEAD; k += 1) keep.add(wrapIndex(keepIndex + k))
+  for (const key of targetsCache.keys()) {
+    if (!keep.has(key)) targetsCache.delete(key)
   }
 }
 
-function getTargets(index) {
-  const count = frames.length
-  const i = ((index % count) + count) % count
-  if (!targetsCache.has(i)) targetsCache.set(i, buildTargets(frames[i]))
+// 异步加载像素并采样成目标点；同一帧只发起一次请求。
+function requestTargets(index) {
+  if (!FRAME_COUNT) return
+  const i = wrapIndex(index)
+  if (targetsCache.has(i) || pendingTargets.has(i) || failedTargets.has(i)) return
+  pendingTargets.add(i)
+  loadImage(FRAME_URLS[i]).then((image) => {
+    pendingTargets.delete(i)
+    if (!alive) return
+    if (!image) {
+      failedTargets.add(i)
+      return
+    }
+    targetsCache.set(i, buildTargets(image))
+  })
+}
 
-  // 只保留当前帧和下一帧，其余采样点立即释放。
-  const next = (i + 1) % count
-  for (const key of targetsCache.keys()) {
-    if (key !== i && key !== next) targetsCache.delete(key)
+// 返回目标点；图片还没就绪时返回 null，由调用方保留上一帧画面。
+function getTargets(index) {
+  if (!FRAME_COUNT) return null
+  const i = wrapIndex(index)
+  if (!targetsCache.has(i)) {
+    requestTargets(i)
+    return null
   }
   return targetsCache.get(i)
 }
@@ -161,18 +185,17 @@ function updateParticle(particle) {
     particle.vy -= (dy / dist) * force * 3.5
   }
 
-  // 弹簧回位 + 摩擦力：切帧时粒子飞向新目标，鼠标移开后自动复原。
-  particle.vx += ((particle.active ? particle.targetX : particle.x) - particle.x) * particle.ease
-  particle.vy += ((particle.active ? particle.targetY : particle.y) - particle.y) * particle.ease
-  particle.vx *= 0.82
-  particle.vy *= 0.82
+  // 所有粒子（含淡出中的冗余粒子）统一流向各自局部目标；
+  // 阻尼从 0.82 提到 0.62，接近临界阻尼，快速收敛且不来回震荡。
+  particle.vx = (particle.vx + (particle.targetX - particle.x) * particle.ease) * 0.62
+  particle.vy = (particle.vy + (particle.targetY - particle.y) * particle.ease) * 0.62
   particle.x += particle.vx
   particle.y += particle.vy
 
-  // 淡入淡出、笔触尺寸与亮度都做缓动，切帧过渡不会出现硬跳。
-  particle.alpha += ((particle.active ? 1 : 0) - particle.alpha) * 0.07
-  particle.size += (particle.targetSize - particle.size) * 0.1
-  particle.level += (particle.targetLevel - particle.level) * 0.08
+  // 加快透明度、尺寸与亮度的缓动，匹配更快的切帧节奏。
+  particle.alpha += ((particle.active ? 1 : 0) - particle.alpha) * 0.15
+  particle.size += (particle.targetSize - particle.size) * 0.18
+  particle.level += (particle.targetLevel - particle.level) * 0.15
 }
 
 function drawParticles(moving) {
@@ -210,27 +233,36 @@ function render(moving) {
   ctx.restore()
 }
 
+// 后续帧的加载与像素采样放进空闲时段，避免和切帧挤在同一帧造成掉帧。
+// 超时必须小于 1s 的切帧间隔，否则采样会拖到切帧后才完成。
 function prefetch(index) {
-  if (!frames.length) return
+  if (!FRAME_COUNT) return
   const run = () => {
     if (!alive) return
-    getTargets(index)
+    for (let k = 1; k <= PREFETCH_AHEAD; k += 1) requestTargets(index + k)
   }
-  // 下一帧的像素采样放进空闲时段，避免和切帧挤在同一帧造成掉帧。
   if (typeof requestIdleCallback === 'function') {
-    prefetchHandle = requestIdleCallback(run, { timeout: 2000 })
+    prefetchHandle = requestIdleCallback(run, { timeout: 120 })
   } else {
-    prefetchHandle = setTimeout(run, 300)
+    prefetchHandle = setTimeout(run, 80)
   }
 }
 
 function tick(now) {
-  if (frames.length) {
-    const index = getCycleIndex(now - startTime, frames.length, DWELL_MS)
+  if (FRAME_COUNT) {
+    const index = getCycleIndex(now - startTime, FRAME_COUNT, DWELL_MS)
     if (index !== currentIndex) {
       currentIndex = index
-      applyTargets(getTargets(index))
       prefetch(index + 1)
+    }
+    // 图片尚未就绪时保留上一帧目标，粒子继续缓动而不是卡住。
+    if (index !== appliedIndex) {
+      const targets = getTargets(index)
+      if (targets) {
+        appliedIndex = index
+        applyTargets(targets)
+        pruneTargets(index)
+      }
     }
   }
   render(true)
@@ -297,6 +329,18 @@ function resetPointer() {
   pointer.y = -9999
 }
 
+function renderStaticFirstFrame() {
+  applyTargets(targetsCache.get(0))
+  for (const particle of pool) {
+    particle.x = particle.targetX
+    particle.y = particle.targetY
+    particle.size = particle.targetSize
+    particle.level = particle.targetLevel
+    particle.alpha = particle.active ? 1 : 0
+  }
+  render(false)
+}
+
 onMounted(async () => {
   const context = canvas.value?.getContext('2d')
   if (!context) return
@@ -307,25 +351,21 @@ onMounted(async () => {
   window.addEventListener('pointermove', handlePointerMove)
   document.documentElement.addEventListener('pointerleave', resetPointer)
 
-  const loaded = await Promise.all(IMAGE_URLS.map(loadImage))
-  if (!alive) return
-  frames = loaded.filter(Boolean)
-  if (!frames.length) return
+  // 只等首帧：其余帧按播放进度提前异步加载，不阻塞首屏。
+  const firstImage = FRAME_COUNT ? await loadImage(FRAME_URLS[0]) : null
+  if (!alive || !firstImage) return
+  targetsCache.set(0, buildTargets(firstImage))
 
   if (reducedMotion) {
     // 减少动态：只画首帧的粒子静态图，不启动交替循环。
-    applyTargets(buildTargets(frames[0]))
-    for (const particle of pool) {
-      particle.x = particle.targetX
-      particle.y = particle.targetY
-      particle.size = particle.targetSize
-      particle.level = particle.targetLevel
-      particle.alpha = particle.active ? 1 : 0
-    }
-    render(false)
+    renderStaticFirstFrame()
     return
   }
 
+  appliedIndex = 0
+  currentIndex = 0
+  applyTargets(targetsCache.get(0))
+  prefetch(1)
   startTime = performance.now()
   frameId = requestAnimationFrame(tick)
 })

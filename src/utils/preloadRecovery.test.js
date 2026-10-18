@@ -52,3 +52,18 @@ test('installPreloadRecovery reloads once and clears the guard after success', (
   afterEach(null, null)
   assert.equal(values.size, 0)
 })
+
+test('installPreloadRecovery does not block startup when storage is unavailable', () => {
+  let listeners = 0
+  const browserWindow = {
+    addEventListener() {
+      listeners += 1
+    },
+    get sessionStorage() {
+      throw new DOMException('Blocked', 'SecurityError')
+    },
+  }
+
+  assert.doesNotThrow(() => installPreloadRecovery({}, browserWindow))
+  assert.equal(listeners, 0)
+})

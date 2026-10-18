@@ -1,13 +1,27 @@
 <script setup>
+import { nextTick, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import TheNavigation from '@/views/TheNavigation.vue'
 import TheFooter from '@/components/TheFooter.vue'
 import { Analytics } from '@vercel/analytics/vue'
 import { SpeedInsights } from '@vercel/speed-insights/vue'
 
+const route = useRoute()
+
 function focusMainContent() {
   // Hash 路由会把普通锚点当成路由；直接聚焦可保留当前页面地址。
   document.getElementById('main-content')?.focus()
 }
+
+watch(
+  () => route.fullPath,
+  async () => {
+    document.title = route.meta.title
+    // 路由视图替换完成后聚焦新主内容，让键盘和屏幕阅读器收到换页反馈。
+    await nextTick()
+    focusMainContent()
+  },
+)
 </script>
 
 <template>

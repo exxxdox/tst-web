@@ -97,7 +97,7 @@ p {
   font-display: swap;
 }
 
-/* 超宽视口下粒子画按 contain 缩放，左右会露出底色；首页强制黑底，露出的部分与画面一致。 */
+/* 首页粒子画完成首次绘制前 canvas 透明；强制黑底避免露出全站渐变。 */
 body:has(.home-page) {
   background: #000000;
 }

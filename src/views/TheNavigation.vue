@@ -10,7 +10,8 @@ export default {
   },
   watch: {
     $route() {
-      this.close()
+      // 换页后的焦点交给 App 的主内容，避免菜单按钮覆盖页面宣告。
+      this.close({ restoreFocus: false })
     },
     isOpen(val) {
       if (val) {
@@ -120,6 +121,7 @@ export default {
       class="drawer"
       :class="{ open: isOpen }"
       role="dialog"
+      aria-label="Navigation menu"
       aria-modal="true"
       :aria-hidden="isOpen ? 'false' : 'true'"
       :inert="isOpen ? undefined : ''"
@@ -134,9 +136,11 @@ export default {
         ×
       </button>
       <nav class="drawer-nav">
-        <AppLink :to="{ name: 'Home' }" @click="close">Home</AppLink>
-        <AppLink :to="{ name: 'Performance' }" @click="close">Performance</AppLink>
-        <AppLink :to="{ name: 'Links' }" @click="close">Links</AppLink>
+        <AppLink :to="{ name: 'Home' }" @click="close({ restoreFocus: false })">Home</AppLink>
+        <AppLink :to="{ name: 'Performance' }" @click="close({ restoreFocus: false })">
+          Performance
+        </AppLink>
+        <AppLink :to="{ name: 'Links' }" @click="close({ restoreFocus: false })">Links</AppLink>
       </nav>
       <div class="drawer-foot">
         <AppLink to="https://github.com/exxxdox" @click="close">

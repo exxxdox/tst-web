@@ -8,6 +8,17 @@ export function getCycleIndex(elapsedMs, count, dwellMs) {
 }
 
 /**
+ * 按帧顺序寻找第一张可用图片，避免单张资源失败时阻断整段动画。
+ */
+export async function findFirstAvailableFrame(urls, loadImage) {
+  for (let index = 0; index < urls.length; index += 1) {
+    const image = await loadImage(urls[index])
+    if (image) return { image, index }
+  }
+  return null
+}
+
+/**
  * 按空间扫描序与分位数把新帧目标点分配给粒子池：
  * 1. 粒子数不足时按新帧分位数均匀补齐，避免新粒子全堆在画面底部；
  * 2. 按当前扫描序重排粒子池，消除不同帧点数差异引发的跨屏对角线乱飞；

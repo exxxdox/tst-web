@@ -1,11 +1,19 @@
 <script setup>
-import { ref } from 'vue'
+import { nextTick, ref } from 'vue'
 import SignalStrip from '@/components/SignalStrip.vue'
 
 const bilibiliPlayerUrl =
   'https://player.bilibili.com/player.html?bvid=BV1yCXAYRECD&page=1&high_quality=1&danmaku=0'
 
 const isPlaying = ref(false)
+const player = ref(null)
+
+async function play() {
+  isPlaying.value = true
+  // 按钮会被 iframe 替换，主动交接焦点，避免键盘位置回到文档开头。
+  await nextTick()
+  player.value?.focus()
+}
 </script>
 
 <template>
@@ -28,7 +36,7 @@ const isPlaying = ref(false)
           class="performance-poster"
           type="button"
           aria-label="Play My Favourite Things performance"
-          @click="isPlaying = true"
+          @click="play"
         >
           <!-- 封面图改用 WebP(1.75MB→80KB)，decoding=async 让解码不阻塞主线程 -->
           <img src="/anime-jazz-guitar-cover.webp" alt="" decoding="async" />
@@ -42,6 +50,7 @@ const isPlaying = ref(false)
         </button>
         <iframe
           v-else
+          ref="player"
           class="performance__player"
           :src="bilibiliPlayerUrl"
           title="My Favourite Things - Covered by TST"

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { assignParticleTargets, getCycleIndex } from './particleCycle.js'
+import { assignParticleTargets, findFirstAvailableFrame, getCycleIndex } from './particleCycle.js'
 
 test('getCycleIndex stays on the first frame until the dwell time elapses', () => {
   assert.equal(getCycleIndex(0, 10, 2400), 0)
@@ -17,6 +17,17 @@ test('getCycleIndex falls back to zero on invalid input', () => {
   assert.equal(getCycleIndex(-1, 10, 2400), 0)
   assert.equal(getCycleIndex(100, 0, 2400), 0)
   assert.equal(getCycleIndex(100, 10, 0), 0)
+})
+
+test('findFirstAvailableFrame skips failed frames', async () => {
+  const requested = []
+  const result = await findFirstAvailableFrame(['frame-0', 'frame-1', 'frame-2'], async (url) => {
+    requested.push(url)
+    return url === 'frame-1' ? { url } : null
+  })
+
+  assert.deepEqual(requested, ['frame-0', 'frame-1'])
+  assert.deepEqual(result, { image: { url: 'frame-1' }, index: 1 })
 })
 
 test('assignParticleTargets pairs particles by spatial order and anchors surplus particles locally', () => {

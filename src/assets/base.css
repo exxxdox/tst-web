@@ -35,7 +35,6 @@
 
   --fs-kicker: clamp(0.76rem, 1.4vw, 0.86rem);
   --fs-body: clamp(1rem, 1.7vw, 1.1rem);
-  --fs-display: clamp(3.4rem, 14vw, 9.5rem);
   --fs-h1: clamp(3rem, 8.5vw, 7rem);
   --fs-h2: clamp(2rem, 5vw, 4rem);
   --fs-h3: clamp(1.15rem, 2.4vw, 1.55rem);
@@ -61,7 +60,6 @@
     --stage-max: 1040px;
     --fs-kicker: 1rem;
     --fs-body: 1.15rem;
-    --fs-display: 11rem;
     --fs-h1: 7.5rem;
     --fs-h2: 4.5rem;
     --fs-h3: 1.8rem;
@@ -74,7 +72,6 @@
     --stage-max: 1200px;
     --fs-kicker: 1.1rem;
     --fs-body: 1.25rem;
-    --fs-display: 13rem;
     --fs-h1: 8.5rem;
     --fs-h2: 5rem;
     --fs-h3: 2rem;

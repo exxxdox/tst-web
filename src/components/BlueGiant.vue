@@ -1,6 +1,10 @@
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from 'vue'
-import { assignParticleTargets, getCycleIndex } from '@/utils/particleCycle'
+import {
+  assignParticleTargets,
+  findFirstAvailableFrame,
+  getCycleIndex,
+} from '@/utils/particleCycle'
 
 const canvas = ref(null)
 // assets/frames 是同一支演奏视频的顺序抽帧，文件名零填充，按字典序即为播放顺序。
@@ -15,8 +19,8 @@ const FRAME_URLS = Object.keys(frameUrls)
   .sort()
   .map((key) => frameUrls[key])
 const FRAME_COUNT = FRAME_URLS.length
-// 模块求值即预取首帧：不必等组件挂载，图片请求可提前约 1s。
-const firstFrameImage = FRAME_COUNT ? loadImage(FRAME_URLS[0]) : null
+// setup 阶段即寻找首张可用帧：提前请求，同时避免单张资源失败阻断整段动画。
+const firstAvailableFrame = FRAME_COUNT ? findFirstAvailableFrame(FRAME_URLS, loadImage) : null
 const DESIGN_W = 1280
 const DESIGN_H = 720
 // 采样网格宽度。640 宽再按步长 2 取点，单帧约 2.5 万个粒子，兼顾细节与本机帧率。
@@ -58,6 +62,7 @@ let frameId = 0
 let resizeFrame = 0
 let prefetchHandle = 0
 let reducedMotion = false
+let motionPreference = null
 let alive = true
 let startTime = 0
 let lastTime = 0
@@ -273,7 +278,7 @@ function prefetch(index) {
   if (!FRAME_COUNT) return
   const run = () => {
     if (!alive) return
-    for (let k = 1; k <= PREFETCH_AHEAD; k += 1) requestTargets(index + k)
+    for (let k = 0; k < PREFETCH_AHEAD; k += 1) requestTargets(index + k)
   }
   if (typeof requestIdleCallback === 'function') {
     prefetchHandle = requestIdleCallback(run, { timeout: 120 })
@@ -361,8 +366,10 @@ function resetPointer() {
   pointer.y = -9999
 }
 
-function renderStaticFirstFrame() {
-  applyTargets(targetsCache.get(0))
+function renderStaticFrame(index) {
+  const targets = targetsCache.get(index)
+  if (!targets) return
+  applyTargets(targets)
   for (const particle of pool) {
     particle.x = particle.targetX
     particle.y = particle.targetY
@@ -373,32 +380,52 @@ function renderStaticFirstFrame() {
   render(false)
 }
 
+function handleMotionPreferenceChange(event) {
+  if (reducedMotion === event.matches) return
+  reducedMotion = event.matches
+
+  if (reducedMotion) {
+    cancelAnimationFrame(frameId)
+    frameId = 0
+    renderStaticFrame(appliedIndex)
+    return
+  }
+
+  if (appliedIndex < 0) return
+  startTime = performance.now() - appliedIndex * DWELL_MS
+  lastTime = 0
+  frameId = requestAnimationFrame(tick)
+}
+
 onMounted(async () => {
   const context = canvas.value?.getContext('2d')
   if (!context) return
   ctx = context
-  reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)')
+  reducedMotion = motionPreference.matches
+  // 系统偏好可能在页面打开后改变，动画必须即时停下或恢复。
+  motionPreference.addEventListener('change', handleMotionPreferenceChange)
   resize()
   window.addEventListener('resize', handleResize)
   window.addEventListener('pointermove', handlePointerMove)
   document.documentElement.addEventListener('pointerleave', resetPointer)
 
-  // 只等首帧：其余帧按播放进度提前异步加载，不阻塞首屏。
-  const firstImage = firstFrameImage ? await firstFrameImage : null
-  if (!alive || !firstImage) return
-  targetsCache.set(0, buildTargets(firstImage))
+  // 只等首张可用帧：其余帧按播放进度提前异步加载，不阻塞首屏。
+  const firstFrame = firstAvailableFrame ? await firstAvailableFrame : null
+  if (!alive || !firstFrame) return
+  targetsCache.set(firstFrame.index, buildTargets(firstFrame.image))
+  appliedIndex = firstFrame.index
+  currentIndex = firstFrame.index
 
   if (reducedMotion) {
-    // 减少动态：只画首帧的粒子静态图，不启动交替循环。
-    renderStaticFirstFrame()
+    // 减少动态：只画首张可用帧的粒子静态图，不启动交替循环。
+    renderStaticFrame(firstFrame.index)
     return
   }
 
-  appliedIndex = 0
-  currentIndex = 0
-  applyTargets(targetsCache.get(0))
-  prefetch(1)
-  startTime = performance.now()
+  applyTargets(targetsCache.get(firstFrame.index))
+  prefetch(firstFrame.index + 1)
+  startTime = performance.now() - firstFrame.index * DWELL_MS
   frameId = requestAnimationFrame(tick)
 })
 
@@ -414,6 +441,7 @@ onBeforeUnmount(() => {
   window.removeEventListener('resize', handleResize)
   window.removeEventListener('pointermove', handlePointerMove)
   document.documentElement.removeEventListener('pointerleave', resetPointer)
+  motionPreference?.removeEventListener('change', handleMotionPreferenceChange)
 })
 </script>
 

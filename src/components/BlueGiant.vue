@@ -29,10 +29,22 @@ const JITTER = 1.4
 const ALPHA_LEVELS = 16
 // 鼠标排斥半径（设计空间像素）。
 const REPEL_RADIUS = 90
+// 排斥是速度冲量，按每秒归一化，保证不同刷新率下力度一致。
+const REPEL_IMPULSE = 3.5 * 60
+// 连续弹簧参数：由原 60Hz 离散缓动反推，ζ≈0.65、ω≈16.4rad/s，60Hz 下约 0.4s 收敛。
+const EASE_OMEGA = 16.44
+const EASE_ZETA = 0.654
+// 一阶缓动速率（1/s），与原 60Hz 参数按同一倍率换算。
+const ALPHA_RATE = 7.309
+const SIZE_RATE = 8.983
+// 单次积分上限：低帧率时拆成多个 1/60s 子步，轨迹与高刷设备一致。
+const MAX_STEP = 1 / 60
+// 切后台回来时 dt 可能很大，截断避免粒子瞬移和积分发散。
+const MAX_DELTA = 0.05
 const MAX_BACKING = 1800
-// 每张图停留 1s；轮播时长随帧数变化。
-const DWELL_MS = 1000
-// 提前 4 帧（约 4s）加载与采样，给网络留预算。
+// 每张图停留 1.3s；轮播时长随帧数变化。
+const DWELL_MS = 1300
+// 提前 4 帧（约 5.2s）加载与采样，给网络留预算。
 const PREFETCH_AHEAD = 4
 
 let ctx = null
@@ -47,6 +59,7 @@ let prefetchHandle = 0
 let reducedMotion = false
 let alive = true
 let startTime = 0
+let lastTime = 0
 let currentIndex = -1
 let appliedIndex = -1
 
@@ -110,6 +123,8 @@ function buildTargets(image) {
 }
 
 function createParticle(target) {
+  // 角频率做 ±9% 抖动，避免所有粒子同步收敛显得机械。
+  const omega = EASE_OMEGA * (0.91 + Math.random() * 0.18)
   return {
     // 新粒子从目标就近微幅散开并淡入，避免切帧时远距离突兀飞入。
     x: target.x + (Math.random() - 0.5) * 36,
@@ -124,8 +139,9 @@ function createParticle(target) {
     level: target.level,
     alpha: 0,
     active: true,
-    // 提高弹簧刚度配合 0.62 阻尼（接近临界阻尼），切帧收敛更快且不在终点反复回弹。
-    ease: 0.14 + Math.random() * 0.06,
+    // 缓动系数换成连续弹簧的刚度与阻尼，配合 delta-time 积分。
+    stiffness: omega * omega,
+    damping: 2 * EASE_ZETA * omega,
   }
 }
 
@@ -176,34 +192,49 @@ function getTargets(index) {
   return targetsCache.get(i)
 }
 
-function updateParticle(particle) {
+function updateParticle(particle, dt) {
   const dx = pointer.x - particle.x
   const dy = pointer.y - particle.y
   const distSq = dx * dx + dy * dy
   if (distSq < REPEL_RADIUS * REPEL_RADIUS && distSq > 0.01) {
     const dist = Math.sqrt(distSq)
     const force = (REPEL_RADIUS - dist) / REPEL_RADIUS
-    particle.vx -= (dx / dist) * force * 3.5
-    particle.vy -= (dy / dist) * force * 3.5
+    particle.vx -= (dx / dist) * force * REPEL_IMPULSE * dt
+    particle.vy -= (dy / dist) * force * REPEL_IMPULSE * dt
   }
 
-  // 所有粒子（含淡出中的冗余粒子）统一流向各自局部目标；
-  // 阻尼从 0.82 提到 0.62，接近临界阻尼，快速收敛且不来回震荡。
-  particle.vx = (particle.vx + (particle.targetX - particle.x) * particle.ease) * 0.62
-  particle.vy = (particle.vy + (particle.targetY - particle.y) * particle.ease) * 0.62
-  particle.x += particle.vx
-  particle.y += particle.vy
-
-  // 加快透明度、尺寸与亮度的缓动，匹配更快的切帧节奏。
-  particle.alpha += ((particle.active ? 1 : 0) - particle.alpha) * 0.15
-  particle.size += (particle.targetSize - particle.size) * 0.18
-  particle.level += (particle.targetLevel - particle.level) * 0.15
+  // 连续弹簧-阻尼积分：墙钟轨迹与刷新率无关。
+  particle.vx +=
+    (particle.stiffness * (particle.targetX - particle.x) - particle.damping * particle.vx) * dt
+  particle.vy +=
+    (particle.stiffness * (particle.targetY - particle.y) - particle.damping * particle.vy) * dt
+  particle.x += particle.vx * dt
+  particle.y += particle.vy * dt
 }
 
-function drawParticles(moving) {
+function drawParticles(moving, dt) {
   for (const bucket of renderBuckets) bucket.length = 0
+
+  if (moving && dt > 0) {
+    // 低帧率拆成 ≤1/60s 的子步，使 30Hz 与 120Hz 走同一条轨迹。
+    let remaining = dt
+    while (remaining > 0) {
+      const step = Math.min(remaining, MAX_STEP)
+      for (const particle of pool) updateParticle(particle, step)
+      remaining -= step
+    }
+
+    // 一阶缓动用指数衰减换算，任意 dt 下时长一致。
+    const alphaK = 1 - Math.exp(-ALPHA_RATE * dt)
+    const sizeK = 1 - Math.exp(-SIZE_RATE * dt)
+    for (const particle of pool) {
+      particle.alpha += ((particle.active ? 1 : 0) - particle.alpha) * alphaK
+      particle.size += (particle.targetSize - particle.size) * sizeK
+      particle.level += (particle.targetLevel - particle.level) * alphaK
+    }
+  }
+
   for (const particle of pool) {
-    if (moving) updateParticle(particle)
     const alpha = particle.alpha * particle.level
     if (alpha < 0.03) continue
     const level = Math.min(ALPHA_LEVELS - 1, Math.floor(alpha * ALPHA_LEVELS))
@@ -220,7 +251,7 @@ function drawParticles(moving) {
   }
 }
 
-function render(moving) {
+function render(moving, dt = 0) {
   if (!ctx) return
   ctx.clearRect(0, 0, cssWidth, cssHeight)
   ctx.save()
@@ -231,12 +262,12 @@ function render(moving) {
   ctx.fillStyle = '#000000'
   ctx.fillRect(0, 0, DESIGN_W, DESIGN_H)
 
-  drawParticles(moving)
+  drawParticles(moving, dt)
   ctx.restore()
 }
 
 // 后续帧的加载与像素采样放进空闲时段，避免和切帧挤在同一帧造成掉帧。
-// 超时必须小于 1s 的切帧间隔，否则采样会拖到切帧后才完成。
+// 超时必须小于 1.3s 的切帧间隔，否则采样会拖到切帧后才完成。
 function prefetch(index) {
   if (!FRAME_COUNT) return
   const run = () => {
@@ -251,6 +282,9 @@ function prefetch(index) {
 }
 
 function tick(now) {
+  // 首帧按 60Hz 步长起步；之后用真实间隔，切后台回来时截断。
+  const dt = lastTime ? Math.min((now - lastTime) / 1000, MAX_DELTA) : MAX_STEP
+  lastTime = now
   if (FRAME_COUNT) {
     const index = getCycleIndex(now - startTime, FRAME_COUNT, DWELL_MS)
     if (index !== currentIndex) {
@@ -267,7 +301,7 @@ function tick(now) {
       }
     }
   }
-  render(true)
+  render(true, dt)
   frameId = requestAnimationFrame(tick)
 }
 

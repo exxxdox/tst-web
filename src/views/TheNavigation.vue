@@ -82,7 +82,8 @@ export default {
 </script>
 
 <template>
-  <header class="nav-container">
+  <!-- 首页的粒子画从视口顶部铺满，导航去掉底色，避免遮挡画面 -->
+  <header class="nav-container" :class="{ 'nav--home': $route.name === 'Home' }">
     <nav class="left" aria-label="Primary navigation">
       <AppLink class="brand-link" :to="{ name: 'Home' }" aria-label="TST home">TST</AppLink>
       <AppLink class="nav-link" :to="{ name: 'Performance' }">Performance</AppLink>
@@ -164,6 +165,16 @@ export default {
     linear-gradient(90deg, rgba(6, 17, 31, 0.9), rgba(8, 24, 42, 0.64)), rgba(6, 17, 31, 0.78);
   border-bottom: 1px solid rgba(61, 255, 141, 0.1);
   backdrop-filter: blur(16px);
+}
+/* 首页只保留导航元素本身：去背景、去分隔线、去模糊，让人物粒子画完整露出。 */
+.nav-container.nav--home {
+  background: transparent;
+  border-bottom-color: transparent;
+  backdrop-filter: none;
+}
+/* 透明背景下给链接加一层暗色投影，压在亮部粒子上仍然可读。 */
+.nav-container.nav--home .nav-link {
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.85);
 }
 .left {
   display: grid;

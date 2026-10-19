@@ -23,7 +23,7 @@ const year = new Date().getFullYear()
   /* display:grid + align-content:center 让内层垂直居中，取代内层自己那份 min-height。
      两层都写 min-height: var(--footer-height) 时，内层已占满 64px，外层 border-top
      只能加在这 64px 之外 → footer 实际 64.8px，比页面 min-height 里预留的多 1px，
-     Performance / Links 因此常驻纵向滚动条（首页不渲染 footer，所以没这问题）。 */
+     页面因此常驻纵向滚动条。高度预算只保留外层这一处。 */
   display: grid;
   align-content: center;
   min-height: var(--footer-height);

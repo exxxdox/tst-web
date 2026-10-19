@@ -39,8 +39,9 @@ async function play() {
           aria-label="Play My Favourite Things performance"
           @click="play"
         >
-          <!-- 封面图改用 WebP(1.75MB→80KB)，decoding=async 让解码不阻塞主线程 -->
-          <img src="/anime-jazz-guitar-cover.webp" alt="" decoding="async" />
+          <!-- 封面图改用 WebP(1.75MB→80KB)，decoding=async 让解码不阻塞主线程；
+               区块在首屏下方，懒加载避免首屏为 82KB 图片付流量 -->
+          <img src="/anime-jazz-guitar-cover.webp" alt="" loading="lazy" decoding="async" />
           <span class="performance-poster__copy">
             <span class="performance-poster__play" aria-hidden="true">▶</span>
             <span>

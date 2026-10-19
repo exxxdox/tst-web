@@ -13,7 +13,7 @@ pnpm install
 pnpm dev          # vite dev server
 pnpm build        # vite build → dist/
 pnpm preview      # 预览 dist
-pnpm test         # Node 内置测试；覆盖外链、chunk 恢复和滚动显现
+pnpm test         # Node 内置测试；覆盖外链、锚点落点和滚动显现
 pnpm check        # test + build + Prettier 检查
 pnpm format       # 格式化 src/、README 与根配置
 ```
@@ -27,7 +27,7 @@ pnpm format       # 格式化 src/、README 与根配置
 
 `App.vue` 是唯一外壳，包含 `TheNavigation`、`RouterView`、始终渲染的 `TheFooter`、跳过链接，以及 Vercel 的 `Analytics` / `SpeedInsights`。
 
-**路由**：`createWebHashHistory` → URL 形如 `/#/`。三页已合并为单页：Home 承载首屏、Performance、Links 三个区块；旧地址 `/performance`、`/links` 重定向到 `#performance` / `#links` 锚点，`scrollBehavior` 做平滑滚动。`main.js` 监听 `vite:preloadError`，新版部署使旧 chunk 失效时只刷新一次。hash 模式是为静态托管选的，改成 history 模式前必须先确认托管方 SPA fallback。
+**路由**：`createWebHashHistory` → URL 形如 `/#/`。三页已合并为单页：Home 承载首屏、Performance、Links 三个区块；旧地址 `/performance`、`/links` 重定向到 `#performance` / `#links` 锚点，`scrollBehavior` 做平滑滚动（减少动态偏好下改为瞬时跳转）。hash 模式是为静态托管选的，改成 history 模式前必须先确认托管方 SPA fallback。
 
 **`AppLink.vue` 是唯一的链接原语**，已在 `main.js` 全局注册，页面里直接用、不用 import：
 

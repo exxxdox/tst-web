@@ -1,18 +1,10 @@
-/* color palette from <https://github.com/vuejs/theme> */
 :root {
-  --vt-c-black-mute: rgba(12, 35, 58, 0.72);
-  --vt-c-divider-dark-1: rgba(61, 255, 141, 0.26);
-  --vt-c-text-dark-1: rgba(222, 255, 238, 0.96);
-  --vt-c-text-dark-2: rgba(178, 218, 204, 0.78);
-}
+  --color-background-mute: rgba(12, 35, 58, 0.72);
 
-:root {
-  --color-background-mute: var(--vt-c-black-mute);
+  --color-border-hover: rgba(61, 255, 141, 0.26);
 
-  --color-border-hover: var(--vt-c-divider-dark-1);
-
-  --color-heading: var(--vt-c-text-dark-1);
-  --color-text: var(--vt-c-text-dark-2);
+  --color-heading: rgba(222, 255, 238, 0.96);
+  --color-text: rgba(178, 218, 204, 0.78);
 
   --color-accent: #3dff8d;
   --color-accent-warm: #ffb347;
@@ -87,9 +79,6 @@ body {
   color: var(--color-text);
   /* 全页纯黑：固定粒子画是唯一背景视觉，滚动时只靠透明度压暗 */
   background: #000000;
-  transition:
-    color 0.5s,
-    background-color 0.5s;
   line-height: 1.6;
   font-family: var(--font-body);
   font-size: 15px;

@@ -1,19 +1,14 @@
 /* color palette from <https://github.com/vuejs/theme> */
 :root {
-  --vt-c-black: #06111f;
-  --vt-c-black-soft: rgba(8, 24, 42, 0.82);
   --vt-c-black-mute: rgba(12, 35, 58, 0.72);
   --vt-c-divider-dark-1: rgba(61, 255, 141, 0.26);
-  --vt-c-divider-dark-2: rgba(61, 255, 141, 0.14);
   --vt-c-text-dark-1: rgba(222, 255, 238, 0.96);
   --vt-c-text-dark-2: rgba(178, 218, 204, 0.78);
 }
 
 :root {
-  --color-background-soft: var(--vt-c-black-soft);
   --color-background-mute: var(--vt-c-black-mute);
 
-  --color-border: var(--vt-c-divider-dark-2);
   --color-border-hover: var(--vt-c-divider-dark-1);
 
   --color-heading: var(--vt-c-text-dark-1);

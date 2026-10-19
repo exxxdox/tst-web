@@ -5,28 +5,32 @@ import SignalStrip from '@/components/SignalStrip.vue'
 import PerformanceSection from '@/components/PerformanceSection.vue'
 import LinksSection from '@/components/LinksSection.vue'
 import { observeReveal } from '@/utils/scrollReveal.js'
+import { sceneFade } from '@/utils/sceneFade.js'
 
 const page = ref(null)
 const isScrolled = ref(false)
 let stopReveal = null
+let scrollFrame = 0
 
 function onScroll() {
-  // 滚过首屏后降低粒子背景强度，避免干扰下方正文
-  isScrolled.value = window.scrollY > window.innerHeight * 0.6
-  updateSceneFade()
+  // 合并到一帧：高刷设备的事件频率高于刷新率，避免重复读布局与写样式。
+  if (scrollFrame) return
+  scrollFrame = requestAnimationFrame(() => {
+    scrollFrame = 0
+    // 滚过首屏后降低粒子背景强度，避免干扰下方正文
+    isScrolled.value = window.scrollY > window.innerHeight * 0.6
+    updateSceneFade()
+  })
 }
 
 // 区块中心越靠近视口中心越不透明；靠近上下边缘时淡出，避免边缘内容抢焦点。
 function updateSceneFade() {
   const viewportHeight = window.innerHeight
   const viewportCenter = viewportHeight / 2
-  const opaqueRange = viewportHeight * 0.35
-  const fadeRange = viewportHeight * 0.75
   for (const element of page.value?.querySelectorAll('.hero-stage, .scene') ?? []) {
     const rect = element.getBoundingClientRect()
     const distance = Math.abs(rect.top + rect.height / 2 - viewportCenter)
-    const fade = Math.min(1, Math.max(0, 1 - (distance - opaqueRange) / (fadeRange - opaqueRange)))
-    element.style.setProperty('--scene-fade', fade.toFixed(3))
+    element.style.setProperty('--scene-fade', String(sceneFade(distance, viewportHeight)))
   }
 }
 
@@ -42,6 +46,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', onScroll)
   window.removeEventListener('resize', onScroll)
+  cancelAnimationFrame(scrollFrame)
   stopReveal?.()
 })
 </script>

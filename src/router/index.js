@@ -16,7 +16,8 @@ const router = createRouter({
   scrollBehavior(to, _from, savedPosition) {
     // 页内锚点平滑滚动，并把区块顶部落到固定导航下方。
     if (to.hash) {
-      const target = document.querySelector(to.hash)
+      // 用 id 查找而不是 querySelector：任意 hash 都不会触发非法选择器异常。
+      const target = document.getElementById(to.hash.slice(1))
       const navHeight = document.querySelector('.nav-container')?.offsetHeight ?? 0
       // 显式扣掉固定导航：Vue Router 不会读取 scroll-margin-top。
       return {

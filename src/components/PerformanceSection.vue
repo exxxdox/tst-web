@@ -22,7 +22,7 @@ async function play() {
     <div class="performance container" aria-labelledby="performance-title">
       <div class="performance__copy">
         <p class="kicker">Live take / guitar cover</p>
-        <h1 id="performance-title">My Favourite Things</h1>
+        <h2 id="performance-title" class="section-title">My Favourite Things</h2>
         <p class="performance__meta">Jonathan Kreisberg · covered by TST</p>
         <SignalStrip input="Take 01" output="Video" />
       </div>
@@ -102,7 +102,7 @@ async function play() {
   gap: 0.85rem;
 }
 
-.performance__copy h1 {
+.performance__copy .section-title {
   text-wrap: balance;
 }
 
@@ -226,6 +226,8 @@ async function play() {
   aspect-ratio: 1;
   place-items: center;
   padding-left: 0.18em;
+  /* 三角字符随按钮尺寸放大，避免大屏上按钮大、图标小 */
+  font-size: clamp(1.25rem, 2.4vw, 2rem);
   color: #06111f;
   background: var(--color-accent);
   border: 1px solid rgba(222, 255, 238, 0.44);
@@ -254,9 +256,9 @@ async function play() {
   }
 }
 
-/* 小屏：高度预算会把 --stage-w 压到 20rem 下限，比 Links 卡片窄；
-   改为满栏宽度，和 Transcribe Website 卡片对齐。 */
-@media (max-width: 760px) {
+/* 单列布局一直持续到桌面双列断点（1024px）；这段宽度内舞台都拉满整栏，
+   避免平板宽度下 --stage-w 被高度预算压成 20rem。 */
+@media (max-width: 1023px) {
   .stage-frame {
     width: 100%;
   }
@@ -282,7 +284,7 @@ async function play() {
 
   /* 文案列在此布局下只有约 350~640px 宽，沿用 --fs-h1 的 112px 会让 "Favourite"
      单个词就超出列宽，所以标题按列宽单独收敛为侧栏尺寸。 */
-  .performance__copy h1 {
+  .performance__copy .section-title {
     font-size: clamp(2.25rem, 2.6vw, 3.75rem);
   }
 }

@@ -39,7 +39,15 @@ const previewUrl = parsedUrl
     :aria-disabled="href ? undefined : 'true'"
   >
     <span class="preview-wrap">
-      <img v-if="hasPreview" class="preview" :src="previewUrl" alt="" @error="hasPreview = false" />
+      <img
+        v-if="hasPreview"
+        class="preview"
+        :src="previewUrl"
+        alt=""
+        loading="lazy"
+        decoding="async"
+        @error="hasPreview = false"
+      />
       <span v-else class="preview-fallback" aria-hidden="true">TST</span>
     </span>
 

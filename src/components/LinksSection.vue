@@ -17,7 +17,7 @@ const links = [
     <div class="links-shell container" aria-labelledby="links-title">
       <div class="links-head">
         <p class="kicker">Outboard gear</p>
-        <h1 id="links-title">Web instruments</h1>
+        <h2 id="links-title" class="section-title">Web instruments</h2>
         <p>
           A short patch bay for projects, profiles, and web tools that sit outside this little
           stage.
@@ -57,7 +57,7 @@ const links = [
   gap: 0.85rem;
 }
 
-.links-head h1 {
+.links-head .section-title {
   text-wrap: balance;
 }
 

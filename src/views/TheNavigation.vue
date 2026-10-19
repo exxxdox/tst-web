@@ -7,14 +7,24 @@ export default {
     }
   },
   mounted() {
+    this.scrollFrame = 0
     window.addEventListener('scroll', this.onScroll, { passive: true })
     this.onScroll()
   },
   beforeUnmount() {
     window.removeEventListener('scroll', this.onScroll)
+    cancelAnimationFrame(this.scrollFrame)
   },
   methods: {
     onScroll() {
+      // 合并到一帧，避免高刷设备重复读取布局。
+      if (this.scrollFrame) return
+      this.scrollFrame = requestAnimationFrame(() => {
+        this.scrollFrame = 0
+        this.updateActiveSection()
+      })
+    },
+    updateActiveSection() {
       // 区块与导航同页，按视口中线判断当前区块。
       const midline = window.innerHeight / 2
       let current = ''
@@ -36,12 +46,14 @@ export default {
       <AppLink
         class="nav-link"
         :class="{ 'is-current': activeSection === 'performance' }"
+        :aria-current="activeSection === 'performance' ? 'true' : undefined"
         :to="{ name: 'Home', hash: '#performance' }"
         >Performance</AppLink
       >
       <AppLink
         class="nav-link"
         :class="{ 'is-current': activeSection === 'links' }"
+        :aria-current="activeSection === 'links' ? 'true' : undefined"
         :to="{ name: 'Home', hash: '#links' }"
         >Links</AppLink
       >

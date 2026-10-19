@@ -17,8 +17,9 @@ async function play() {
 </script>
 
 <template>
-  <main id="main-content" class="performance-page" tabindex="-1">
-    <section class="performance container" aria-labelledby="performance-title">
+  <!-- 由首页统一提供 section 语义与 #performance 锚点，这里只负责内容与版式 -->
+  <div class="performance-page">
+    <div class="performance container" aria-labelledby="performance-title">
       <div class="performance__copy">
         <p class="kicker">Live take / guitar cover</p>
         <h1 id="performance-title">My Favourite Things</h1>
@@ -60,8 +61,8 @@ async function play() {
           sandbox="allow-same-origin allow-forms allow-scripts allow-popups"
         ></iframe>
       </div>
-    </section>
-  </main>
+    </div>
+  </div>
 </template>
 
 <style scoped>
@@ -115,7 +116,8 @@ async function play() {
   width: min(100%, var(--stage-w));
   padding: clamp(0.55rem, 1.8vw, 1rem);
   overflow: hidden;
-  background: #091d2e;
+  /* 黑白灰主题：原深蓝面板改为半透明深灰，粒子背景可透出 */
+  background: rgba(22, 22, 22, 0.72);
   border: 1px solid rgba(61, 255, 141, 0.22);
   border-radius: 10px;
   box-shadow:

@@ -25,9 +25,9 @@ pnpm format       # 格式化 src/、README 与根配置
 
 入口链：`index.html` → `src/main.js`（挂载 `#app`，全局注册 `AppLink`）→ `App.vue`（外壳）→ `router`。
 
-`App.vue` 是唯一外壳，四个东西：`TheNavigation`、`RouterView`、`TheFooter`（`$route.name === 'Home'` 时隐藏）、以及 Vercel 的 `Analytics` / `SpeedInsights`。
+`App.vue` 是唯一外壳，包含 `TheNavigation`、`RouterView`、始终渲染的 `TheFooter`、跳过链接，以及 Vercel 的 `Analytics` / `SpeedInsights`。
 
-**路由**：`createWebHashHistory` → URL 形如 `/#/links`。Home 静态导入，避免首屏出现 entry → Home chunk → Home CSS 的串行发现链；Performance / Links 懒加载，catch-all 重定向 Home。`main.js` 监听 `vite:preloadError`，新版部署使旧 chunk 失效时只刷新一次。hash 模式是为静态托管选的，改成 history 模式前必须先确认托管方 SPA fallback。
+**路由**：`createWebHashHistory` → URL 形如 `/#/`。三页已合并为单页：Home 承载首屏、Performance、Links 三个区块；旧地址 `/performance`、`/links` 重定向到 `#performance` / `#links` 锚点，`scrollBehavior` 做平滑滚动。`main.js` 监听 `vite:preloadError`，新版部署使旧 chunk 失效时只刷新一次。hash 模式是为静态托管选的，改成 history 模式前必须先确认托管方 SPA fallback。
 
 **`AppLink.vue` 是唯一的链接原语**，已在 `main.js` 全局注册，页面里直接用、不用 import：
 
@@ -36,12 +36,12 @@ pnpm format       # 格式化 src/、README 与根配置
 
 URL 规则由 `src/utils/externalUrl.js` 统一处理。`ExternalLinkCard` 遇到无效 URL 时必须降级成不可点击卡片，不能让页面渲染失败。
 
-所以站内跳转一律写 `:to="{ name: 'Performance' }"`，外链写字符串 URL。页面里裸写 `<a>` 会丢掉 hover / `router-link-active` 样式。
+所以站内跳转一律写 `:to="{ name: 'Home', hash: '#performance' }"`，外链写字符串 URL。页面里裸写 `<a>` 会丢掉 hover / `router-link-active` 样式。
 
 ## 目录职责
 
-- `src/views/` — 页面级组件（路由目标）**以及 `TheNavigation.vue`**。注意导航虽在 `views/` 下，但不在路由表里，由 `App.vue` 直接引入。
-- `src/components/` — 复用组件：`AppLink`、`BlueGiant`、`ExternalLinkCard`、`SignalStrip`、`TheFooter`。
+- `src/views/` — 路由目标 `Home.vue` **以及 `TheNavigation.vue`**。注意导航虽在 `views/` 下，但不在路由表里，由 `App.vue` 直接引入。
+- `src/components/` — 复用组件：`AppLink`、`BlueGiant`、`ExternalLinkCard`、`SignalStrip`、`TheFooter`，以及首页区块 `PerformanceSection`、`LinksSection`。
 - `src/assets/` — 全局样式 + 自托管字体。
 - `src/utils/` — 无浏览器状态的共享工具及 Node 内置测试。
 
@@ -52,7 +52,8 @@ URL 规则由 `src/utils/externalUrl.js` 统一处理。`ExternalLinkCard` 遇�
 改配色、间距、字号 → 改 `base.css` 变量，别在组件里硬编码。组件内仍散落着硬编码色值，属于迁移中间态。
 
 - **仅暗色主题**：`base.css` 不保留 light 变量或分支，不要"顺手恢复"。
-- 视觉语汇是"录音棚设备"：`SignalStrip`（input → 电平条 → output）三个页面都在用，新增页面保持这套语言。
+- 视觉语汇是"录音棚设备"：`SignalStrip`（input → 电平条 → output）所有区块都在用，新增区域保持这套语言。
+- 首屏以下区块由 `src/utils/scrollReveal.js` 在首次进入视口时加 `.is-revealed`；动画只作用于内容层，避免改变锚点落点。
 - 主断点是 **760px**（导航折叠、Home 重排、各页 padding 都用它），另有 540 / 680 / 900 / 380px 的局部微调。
 - 字体 Bitcount 自托管 woff2 拉丁子集，体积低于 Vite 内联阈值 → 会被打进 CSS。别把它挪到 `public/`，会重新引入字体请求瀑布。
 
@@ -60,8 +61,8 @@ URL 规则由 `src/utils/externalUrl.js` 统一处理。`ExternalLinkCard` 遇�
 
 这部分是刻意优化过的（见 `6736038`），改动时别退化：
 
-- Home 首屏的黑白表现主义画作由 `BlueGiant.vue` 把 `src/assets/frames/*.webp` 按文件名顺序采样成 Canvas 粒子云并做缓动（每张约 1s，切帧时粒子按空间分位数就近流向新目标；`import.meta.glob` 自动收集，目录内只保留 640 宽 WebP），没有 LCP 图片；其他图片仍一律 WebP，放 `public/`。
-- 大媒体按需加载：`Performance.vue` 先渲染 poster 按钮，点击后才挂载 bilibili iframe（带 `sandbox`）。
+- Home 全页的黑白表现主义画作由 `BlueGiant.vue` 固定在视口背后（滚过首屏后降低透明度），把 `src/assets/frames/*.webp` 按文件名顺序采样成 Canvas 粒子云并做缓动（每张约 1s，切帧时粒子按空间分位数就近流向新目标；`import.meta.glob` 自动收集，目录内只保留 640 宽 WebP），没有 LCP 图片；其他图片仍一律 WebP，放 `public/`。
+- 大媒体按需加载：`PerformanceSection.vue` 先渲染 poster 按钮，点击后才挂载 bilibili iframe（带 `sandbox`）。
 - 源码里解释性能决策的注释（体积对比数字）要跟着代码一起改，别删了留下过时数字。
 - `ExternalLinkCard` 的预览图走第三方 `api.microlink.io`，靠 `@error` 回退到 TST 占位块——改这块要保留失败路径。
 

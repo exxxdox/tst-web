@@ -508,6 +508,8 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .blue-giant {
+  /* 粒子画作为整页固定背景：z-index 0 才能压在 body 黑底之上，
+     正文区块与页脚通过更高层级保持在上方 */
   position: fixed;
   inset: 0;
   z-index: 0;
@@ -515,7 +517,13 @@ onBeforeUnmount(() => {
   height: 100vh;
   opacity: 0.8;
   pointer-events: none;
+  transition: opacity 0.45s ease;
   /* 原图左侧本身是黑场，不再整块渐隐，否则会把手（画面焦点）一起抹掉。 */
+}
+
+/* 滚过首屏后降低粒子强度，保证下方正文的可读性 */
+.blue-giant.is-dim {
+  opacity: 0.3;
 }
 
 .blue-giant canvas {
@@ -528,6 +536,9 @@ onBeforeUnmount(() => {
   .blue-giant {
     opacity: 0.55;
   }
+  .blue-giant.is-dim {
+    opacity: 0.22;
+  }
 }
 
 /* 窄屏没有左右分栏，降低亮度避免和正文抢注意力。 */
@@ -535,11 +546,17 @@ onBeforeUnmount(() => {
   .blue-giant {
     opacity: 0.42;
   }
+  .blue-giant.is-dim {
+    opacity: 0.18;
+  }
 }
 
 @media (max-width: 380px) {
   .blue-giant {
     opacity: 0.34;
+  }
+  .blue-giant.is-dim {
+    opacity: 0.15;
   }
 }
 </style>

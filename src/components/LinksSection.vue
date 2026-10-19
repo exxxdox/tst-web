@@ -12,8 +12,9 @@ const links = [
 </script>
 
 <template>
-  <main id="main-content" class="links-page" tabindex="-1">
-    <section class="links-shell container" aria-labelledby="links-title">
+  <!-- 由首页统一提供 section 语义与 #links 锚点，这里只负责内容与版式 -->
+  <div class="links-page">
+    <div class="links-shell container" aria-labelledby="links-title">
       <div class="links-head">
         <p class="kicker">Outboard gear</p>
         <h1 id="links-title">Web instruments</h1>
@@ -33,8 +34,8 @@ const links = [
           :description="link.description"
         />
       </div>
-    </section>
-  </main>
+    </div>
+  </div>
 </template>
 
 <style scoped>

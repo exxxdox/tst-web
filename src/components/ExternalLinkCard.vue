@@ -66,7 +66,8 @@ const previewUrl = parsedUrl
   padding: 1rem;
   overflow: hidden;
   color: var(--color-heading);
-  background: #0a2032;
+  /* 与 Performance 舞台一致：黑白灰半透明深灰，透出粒子背景 */
+  background: rgba(22, 22, 22, 0.72);
   border: 1px solid rgba(61, 255, 141, 0.22);
   border-radius: 10px;
   box-shadow:

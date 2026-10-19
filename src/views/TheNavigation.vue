@@ -6,6 +6,7 @@ export default {
   data() {
     return {
       isOpen: false,
+      activeSection: '',
     }
   },
   watch: {
@@ -24,10 +25,13 @@ export default {
   mounted() {
     document.addEventListener('keydown', this.onKeydown)
     window.addEventListener('resize', this.onResize)
+    window.addEventListener('scroll', this.onScroll, { passive: true })
+    this.onScroll()
   },
   beforeUnmount() {
     document.removeEventListener('keydown', this.onKeydown)
     window.removeEventListener('resize', this.onResize)
+    window.removeEventListener('scroll', this.onScroll)
     document.body.style.overflow = ''
   },
   methods: {
@@ -68,6 +72,16 @@ export default {
         this.$nextTick(() => this.$refs.desktopBrand?.$el?.focus())
       }
     },
+    onScroll() {
+      // 区块与导航同页，按视口中线判断当前区块。
+      const midline = window.innerHeight / 2
+      let current = ''
+      for (const id of ['performance', 'links']) {
+        const rect = document.getElementById(id)?.getBoundingClientRect()
+        if (rect && rect.top <= midline && rect.bottom > midline) current = id
+      }
+      this.activeSection = current
+    },
     trapDrawerFocus(e) {
       const focusable = this.$refs.drawer.querySelectorAll('a[href], button:not([disabled])')
       const first = focusable[0]
@@ -95,8 +109,18 @@ export default {
       <AppLink ref="desktopBrand" class="brand-link" :to="{ name: 'Home' }" aria-label="TST home">
         TST
       </AppLink>
-      <AppLink class="nav-link" :to="{ name: 'Performance' }">Performance</AppLink>
-      <AppLink class="nav-link" :to="{ name: 'Links' }">Links</AppLink>
+      <AppLink
+        class="nav-link"
+        :class="{ 'is-current': activeSection === 'performance' }"
+        :to="{ name: 'Home', hash: '#performance' }"
+        >Performance</AppLink
+      >
+      <AppLink
+        class="nav-link"
+        :class="{ 'is-current': activeSection === 'links' }"
+        :to="{ name: 'Home', hash: '#links' }"
+        >Links</AppLink
+      >
     </nav>
     <div class="foot" style="gap: 20px">
       <AppLink class="social-link" to="https://github.com/exxxdox">
@@ -144,11 +168,12 @@ export default {
         ×
       </button>
       <nav class="drawer-nav">
-        <AppLink :to="{ name: 'Home' }" @click="closeForRoute('Home')">Home</AppLink>
-        <AppLink :to="{ name: 'Performance' }" @click="closeForRoute('Performance')">
+        <AppLink :to="{ name: 'Home', hash: '#performance' }" @click="closeForRoute('Home')">
           Performance
         </AppLink>
-        <AppLink :to="{ name: 'Links' }" @click="closeForRoute('Links')">Links</AppLink>
+        <AppLink :to="{ name: 'Home', hash: '#links' }" @click="closeForRoute('Home')">
+          Links
+        </AppLink>
       </nav>
       <div class="drawer-foot">
         <AppLink to="https://github.com/exxxdox" @click="close">
@@ -178,7 +203,7 @@ export default {
   border-bottom: 1px solid rgba(61, 255, 141, 0.1);
   backdrop-filter: blur(16px);
 }
-/* 首页只保留导航元素本身：去背景、去分隔线、去模糊，让人物粒子画完整露出。 */
+/* 导航始终透明，粒子画与页面内容直接透出；文字靠投影保证可读。 */
 .nav-container.nav--home {
   background: transparent;
   border-bottom-color: transparent;
@@ -201,8 +226,8 @@ export default {
 }
 .nav-container.nav--home .nav-link.router-link-active {
   color: #ffffff;
-  /* 与首页唯一暖色强调点保持一致 */
-  border-bottom-color: #ffb347;
+  /* 导航保持黑白灰：当前区块只用白色下划线标记 */
+  border-bottom-color: rgba(255, 255, 255, 0.85);
 }
 .nav-container.nav--home .social-link {
   background: rgba(0, 0, 0, 0.42);
@@ -262,9 +287,19 @@ export default {
 .router-link-active {
   color: var(--hover-color);
 }
+/* 同页锚点会让两个 router-link-active 同时命中，区块高亮改由滚动观察决定 */
 .nav-link.router-link-active {
-  color: var(--color-heading);
-  border-bottom: 2px solid var(--color-accent-warm);
+  color: rgba(222, 255, 238, 0.78);
+}
+.nav-link.is-current {
+  color: #ffffff;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.85);
+}
+/* 全局 a:hover 会把链接刷成品牌绿，导航内统一停留在黑白灰 */
+.nav-container .nav-link:hover,
+.nav-container .brand-link:hover,
+.drawer-nav a:hover {
+  color: #ffffff;
 }
 
 /* Hamburger / drawer hidden on desktop */
@@ -375,9 +410,8 @@ export default {
     min-height: 100dvh;
     padding: calc(4rem + env(safe-area-inset-top)) 1.5rem calc(1.5rem + env(safe-area-inset-bottom));
     background:
-      linear-gradient(180deg, rgba(255, 179, 71, 0.08), transparent 32%),
-      var(--color-background-soft);
-    border-left: 1px solid var(--color-border);
+      linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 32%), rgba(4, 4, 4, 0.94);
+    border-left: 1px solid rgba(255, 255, 255, 0.16);
     backdrop-filter: blur(16px);
     transform: translateX(100%);
     transition: transform 0.28s ease;
@@ -397,7 +431,8 @@ export default {
     padding: 0;
     background: transparent;
     border: none;
-    color: var(--hover-color);
+    /* 抽屉保持黑白灰，关闭按钮不再用品牌绿 */
+    color: #ffffff;
     font-size: 28px;
     line-height: 1;
     cursor: pointer;
@@ -408,7 +443,8 @@ export default {
     gap: 1.25rem;
   }
   .drawer-nav a {
-    color: var(--color-heading);
+    /* 抽屉沿用导航黑白灰，不用带绿调的 heading 色 */
+    color: #ffffff;
     /* 移动端抽屉沿用桌面导航的显示字体 */
     font-family: var(--font-display);
     font-size: 1.6rem;

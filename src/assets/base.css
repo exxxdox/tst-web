@@ -87,13 +87,19 @@
   font-weight: normal;
 }
 
+html {
+  /* 关闭态抽屉用 translateX(100%) 移到视口外，会撑出横向滚动条；
+     放在根元素上 clip 才能真正裁掉，且不建立滚动容器，不影响 sticky 导航。 */
+  overflow-x: clip;
+}
+
 body {
   min-height: 100vh;
+  /* 根元素与 body 同时 clip 才能阻止合成层撑出的横向滚动，sticky 不受影响。 */
+  overflow-x: clip;
   color: var(--color-text);
-  background:
-    radial-gradient(circle at 12% 8%, rgba(61, 255, 141, 0.12), transparent 32rem),
-    radial-gradient(circle at 88% 20%, rgba(255, 179, 71, 0.12), transparent 26rem),
-    linear-gradient(140deg, #06111f 0%, #07192a 50%, #03101d 100%);
+  /* 全页纯黑：固定粒子画是唯一背景视觉，滚动时只靠透明度压暗 */
+  background: #000000;
   transition:
     color 0.5s,
     background-color 0.5s;

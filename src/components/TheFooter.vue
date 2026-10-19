@@ -17,6 +17,9 @@ const year = new Date().getFullYear()
 
 <style scoped>
 .site-footer {
+  /* 固定粒子背景是 z-index 0，页脚必须抬到它上面才可见 */
+  position: relative;
+  z-index: 1;
   /* display:grid + align-content:center 让内层垂直居中，取代内层自己那份 min-height。
      两层都写 min-height: var(--footer-height) 时，内层已占满 64px，外层 border-top
      只能加在这 64px 之外 → footer 实际 64.8px，比页面 min-height 里预留的多 1px，
@@ -24,8 +27,9 @@ const year = new Date().getFullYear()
   display: grid;
   align-content: center;
   min-height: var(--footer-height);
-  border-top: 1px solid rgba(61, 255, 141, 0.12);
-  background: rgba(3, 14, 25, 0.72);
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  /* 完全透明：粒子背景直接透出，仅保留顶部分隔线 */
+  background: transparent;
 }
 
 .site-footer__inner {
@@ -33,7 +37,7 @@ const year = new Date().getFullYear()
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 1rem;
-  color: rgba(178, 218, 204, 0.62);
+  color: rgba(255, 255, 255, 0.72);
   font-size: 0.72rem;
   font-weight: 750;
   letter-spacing: 0.12em;
@@ -41,7 +45,7 @@ const year = new Date().getFullYear()
 }
 
 .site-footer__brand {
-  color: var(--color-heading);
+  color: #ffffff;
   font-family: var(--font-display);
   font-size: 1.35rem;
   letter-spacing: -0.06em;
@@ -51,7 +55,7 @@ const year = new Date().getFullYear()
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  color: rgba(222, 255, 238, 0.72);
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .site-footer__status i {

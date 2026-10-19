@@ -1,22 +1,66 @@
 <script setup>
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import BlueGiant from '@/components/BlueGiant.vue'
 import SignalStrip from '@/components/SignalStrip.vue'
+import PerformanceSection from '@/components/PerformanceSection.vue'
+import LinksSection from '@/components/LinksSection.vue'
+import { observeReveal } from '@/utils/scrollReveal.js'
+
+const page = ref(null)
+const isScrolled = ref(false)
+let stopReveal = null
+
+function onScroll() {
+  // 滚过首屏后降低粒子背景强度，避免干扰下方正文
+  isScrolled.value = window.scrollY > window.innerHeight * 0.6
+}
+
+onMounted(() => {
+  window.addEventListener('scroll', onScroll, { passive: true })
+  onScroll()
+  // 首屏以下的区块首次进入视口时加类，之后停止观察；动画本身交给 CSS。
+  const targets = page.value?.querySelectorAll('[data-reveal]') ?? []
+  stopReveal = observeReveal(targets, (section) => section.classList.add('is-revealed'))
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', onScroll)
+  stopReveal?.()
+})
 </script>
 <template>
-  <main id="main-content" class="home-page" tabindex="-1">
-    <div class="centered-rotated-text">TST</div>
-    <!-- 首屏视觉改为 canvas 粒子画：装饰性内容不进可访问性树，也不作为 LCP 图片参与加载 -->
-    <BlueGiant />
+  <main id="main-content" ref="page" class="home-page" tabindex="-1">
+    <!-- 粒子画固定在视口背后贯穿整页，滚动后由 is-dim 降低强度 -->
+    <BlueGiant :class="{ 'is-dim': isScrolled }" />
 
-    <section class="hero container" aria-labelledby="home-title">
-      <h1 id="home-title" class="hero__mark">Music &amp;<br />Code</h1>
-      <div class="hero__actions" aria-label="Primary links">
-        <AppLink class="hero__action hero__action--primary" :to="{ name: 'Performance' }">
-          Watch performance
-        </AppLink>
-        <AppLink class="hero__action" :to="{ name: 'Links' }">Explore instruments</AppLink>
+    <!-- 首屏负责排版与水印，背景仍由固定粒子画提供 -->
+    <section class="hero-stage" aria-labelledby="home-title">
+      <div class="centered-rotated-text">TST</div>
+
+      <div class="hero container">
+        <h1 id="home-title" class="hero__mark">Music &amp;<br />Code</h1>
+        <div class="hero__actions" aria-label="Primary links">
+          <AppLink
+            class="hero__action hero__action--primary"
+            :to="{ name: 'Home', hash: '#performance' }"
+          >
+            Watch performance
+          </AppLink>
+          <AppLink class="hero__action" :to="{ name: 'Home', hash: '#links' }">
+            Explore instruments
+          </AppLink>
+        </div>
+        <SignalStrip input="Guitar" output="Code" />
       </div>
-      <SignalStrip input="Guitar" output="Code" />
+    </section>
+
+    <!-- 原 Performance / Links 路由页，合并为同一页内依次进场的区块 -->
+    <section id="performance" class="scene" data-reveal aria-labelledby="performance-title">
+      <PerformanceSection />
+    </section>
+
+    <section id="links" class="scene" data-reveal aria-labelledby="links-title">
+      <LinksSection />
     </section>
   </main>
 </template>
@@ -27,11 +71,47 @@ import SignalStrip from '@/components/SignalStrip.vue'
   --color-accent: #3dff8d;
   --color-accent-warm: #ffb347;
   --color-heading: #ffffff;
+}
 
+/* 首屏只负责排版：粒子画固定在整页背景层 */
+.hero-stage {
+  position: relative;
+  z-index: 1;
   display: grid;
+  align-items: center;
   min-height: calc(100vh - var(--nav-height));
   overflow: hidden;
   padding-block: clamp(3rem, 7vw, 7rem);
+}
+
+/* 下方区块首次进入视口时由 IntersectionObserver 加上 .is-revealed */
+.scene {
+  position: relative;
+  /* 区块整体压在固定粒子背景之上 */
+  z-index: 1;
+}
+
+/* 动画放在内容层而不是锚点区块本身，避免位移改变锚点落点 */
+.scene > * {
+  opacity: 0;
+  transform: translateY(clamp(1.25rem, 3vw, 2.5rem));
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.scene.is-revealed > * {
+  opacity: 1;
+  transform: none;
+}
+
+/* 减少动态偏好下直接显示：区块不能因为不触发过渡而永久透明 */
+@media (prefers-reduced-motion: reduce) {
+  .scene > * {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
 }
 
 .hero {
@@ -127,7 +207,7 @@ import SignalStrip from '@/components/SignalStrip.vue'
 
 .centered-rotated-text {
   opacity: 0.035;
-  position: fixed;
+  position: absolute;
   top: 50%;
   left: 50%;
   z-index: 0;
@@ -173,7 +253,7 @@ import SignalStrip from '@/components/SignalStrip.vue'
 
 /* 移动端适配：保留装饰元素，重排为雅致的窄屏构图，层级低于导航 */
 @media (max-width: 760px) {
-  .home-page {
+  .hero-stage {
     min-height: auto;
     padding-block: 2rem 5rem;
   }

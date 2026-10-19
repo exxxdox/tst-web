@@ -15,7 +15,8 @@ function focusMainContent() {
 }
 
 watch(
-  () => route.fullPath,
+  // 只监听路径：页内锚点滚动不应把焦点抢回 main，否则会打断导航后的浏览位置。
+  () => route.path,
   async () => {
     document.title = route.meta.title
     // 路由视图替换完成后聚焦新主内容，让键盘和屏幕阅读器收到换页反馈。
@@ -30,7 +31,8 @@ watch(
   <a class="skip-link" href="#main-content" @click.prevent="focusMainContent">Skip to content</a>
   <TheNavigation></TheNavigation>
   <RouterView></RouterView>
-  <TheFooter v-if="$route.name !== 'Home'"></TheFooter>
+  <!-- 三页合并后只有一页，页脚固定在内容末尾 -->
+  <TheFooter></TheFooter>
 </template>
 
 <style scoped>

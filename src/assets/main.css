@@ -97,10 +97,7 @@ p {
   font-display: swap;
 }
 
-/* 首页粒子画完成首次绘制前 canvas 透明；强制黑底避免露出全站渐变。 */
-body:has(.home-page) {
-  background: #000000;
-}
+/* 全页纯黑，粒子画固定铺在视口背后；滚动后由 .is-dim 降低其透明度。 */
 
 @media (hover: hover) {
   a:hover {

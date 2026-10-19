@@ -34,11 +34,12 @@ const MIN_BRIGHTNESS = 12
 const JITTER = 1.4
 // 亮度分桶：每桶只设置一次 fillStyle，避免每帧切换两万多次颜色字符串。
 const ALPHA_LEVELS = 16
-// 鼠标排斥半径（设计空间像素）。cover 放大后画面粒子更稀疏，半径略放大保证排斥圈仍有足够粒子。
-const REPEL_RADIUS = 240
+// 鼠标排斥半径（设计空间像素）。cover 放大后画面粒子更稀疏，半径放大保证排斥圈仍有足够粒子。
+const REPEL_RADIUS = 480
 // 排斥是速度冲量，按每秒归一化，保证不同刷新率下力度一致。
 // 冲量要明显大于弹簧刚度（~270），否则粒子被推开不到 2px 就被拉回，肉眼看不到洞。
-const REPEL_IMPULSE = 60 * 60
+// 与半径同时翻倍：位移场 δ=(I/k)(1-r/R) 整体等比放大 2 倍，空洞直径约为原来的两倍。
+const REPEL_IMPULSE = 120 * 60
 // 连续弹簧参数：由原 60Hz 离散缓动反推，ζ≈0.65、ω≈16.4rad/s，60Hz 下约 0.4s 收敛。
 const EASE_OMEGA = 16.44
 const EASE_ZETA = 0.654

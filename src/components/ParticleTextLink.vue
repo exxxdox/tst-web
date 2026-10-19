@@ -23,18 +23,31 @@ let shadow = { black: 0, green: 0, warm: 0, blur: 0 }
 let cycleStartedAt = 0
 let pointerInside = false
 let focused = false
+let pointerCyclePlayed = false
+let focusCyclePlayed = false
 let reducedMotion = false
 let resizeObserver = null
 let motionQuery = null
+let resizeFrame = 0
 
-const CYCLE_DURATION = 1350
+const CYCLE_DURATION = 680
+
+function particleBurst(progress, timing) {
+  const peak = 0.16 + timing * 0.12
+  if (progress <= peak) {
+    const outward = progress / peak
+    return 1 - (1 - outward) ** 4
+  }
+
+  const inward = (progress - peak) / (1 - peak)
+  return (1 - inward) ** 3
+}
 
 function draw(progress = 0) {
   const context = canvas.value?.getContext('2d')
   if (!context) return
 
-  const burst = Math.sin(Math.PI * progress)
-  const warmMix = Math.max(burst, pointerInside || focused ? 1 : 0)
+  const warmMix = pointerInside || focused || (progress > 0 && progress < 1) ? 1 : 0
   context.clearRect(0, 0, viewport.width, viewport.height)
 
   function drawLayer(offsetX, offsetY, color, radiusScale = 1) {
@@ -42,7 +55,9 @@ function draw(progress = 0) {
     context.beginPath()
 
     for (const particle of particles) {
-      const wobble = Math.sin(progress * Math.PI * 2 + particle.phase) * particle.radius * burst
+      const burst = particleBurst(progress, particle.timing)
+      const wobble =
+        Math.sin(progress * Math.PI * 3 + particle.phase) * particle.radius * burst * 1.6
       const x =
         particle.x +
         (particle.scatterX - particle.x) * burst +
@@ -80,12 +95,6 @@ function animate(now) {
     return
   }
 
-  if (pointerInside || focused) {
-    cycleStartedAt = now
-    animationFrame = requestAnimationFrame(animate)
-    return
-  }
-
   animationFrame = 0
   draw()
 }
@@ -102,21 +111,28 @@ function startCycle() {
 
 function onPointerEnter() {
   pointerInside = true
+  if (pointerCyclePlayed) return
+  // 每次进入只播放一轮；离开后才允许下一次 hover 重新触发。
+  pointerCyclePlayed = true
   startCycle()
 }
 
 function onPointerLeave() {
   pointerInside = false
+  pointerCyclePlayed = false
   if (!animationFrame) draw()
 }
 
 function onFocus() {
   focused = true
+  if (focusCyclePlayed) return
+  focusCyclePlayed = true
   startCycle()
 }
 
 function onBlur() {
   focused = false
+  focusCyclePlayed = false
   if (!animationFrame) draw()
 }
 
@@ -129,12 +145,19 @@ function buildParticles() {
   if (!rect.width || !rect.height) return
 
   const styles = getComputedStyle(targetLabel)
-  const bleed = Math.min(180, Math.max(72, Math.ceil(rect.width * 0.6)))
-  const width = Math.ceil(rect.width + bleed * 2)
-  const height = Math.ceil(rect.height + bleed * 2)
-  const dpr = Math.min(window.devicePixelRatio || 1, 2)
+  const fontSize = Number.parseFloat(styles.fontSize) || rect.height
+  const scatterRadiusX = window.innerWidth * 0.25
+  const scatterRadiusY = window.innerHeight * 0.25
+  const particleMargin = Math.ceil(fontSize * 0.2 + 12)
+  const bleedX = Math.ceil(scatterRadiusX + particleMargin)
+  const bleedY = Math.ceil(scatterRadiusY + particleMargin)
+  const width = Math.ceil(rect.width + bleedX * 2)
+  const height = Math.ceil(rect.height + bleedY * 2)
+  // 大范围 Canvas 只承载圆点，限制像素倍率以免高分屏显存随面积激增。
+  const dpr = Math.min(window.devicePixelRatio || 1, 1.5)
 
-  targetCanvas.style.setProperty('--particle-bleed', `${bleed}px`)
+  targetCanvas.style.setProperty('--particle-bleed-x', `${bleedX}px`)
+  targetCanvas.style.setProperty('--particle-bleed-y', `${bleedY}px`)
   targetCanvas.style.width = `${width}px`
   targetCanvas.style.height = `${height}px`
   targetCanvas.width = Math.ceil(width * dpr)
@@ -158,16 +181,15 @@ function buildParticles() {
   const metrics = sample.measureText(props.text)
   const ascent = metrics.actualBoundingBoxAscent || rect.height * 0.75
   const descent = metrics.actualBoundingBoxDescent || rect.height * 0.25
-  const baseline = bleed + (rect.height - ascent - descent) / 2 + ascent
+  const baseline = bleedY + (rect.height - ascent - descent) / 2 + ascent
   sample.fillStyle = '#fff'
-  sample.fillText(props.text, bleed + rect.width / 2, baseline)
+  sample.fillText(props.text, bleedX + rect.width / 2, baseline)
 
   const pixels = sample.getImageData(0, 0, width, height).data
   const step = Math.max(4, Math.round(rect.height / 14))
   const centerX = width / 2
   const centerY = height / 2
   const nextParticles = []
-  const fontSize = Number.parseFloat(styles.fontSize) || rect.height
 
   shadow = {
     black: fontSize * 0.025,
@@ -201,14 +223,15 @@ function buildParticles() {
       const coverage = alphaTotal / (255 * (endX - x) * (endY - y))
       const phase = Math.random() * Math.PI * 2
       const angle = Math.atan2(pointY - centerY, pointX - centerX) + (Math.random() - 0.5) * 1.2
-      const distance = bleed * (0.58 + Math.random() * 0.32)
+      const distance = 0.72 + Math.random() * 0.28
       nextParticles.push({
         x: pointX,
         y: pointY,
-        scatterX: pointX + Math.cos(angle) * distance,
-        scatterY: pointY + Math.sin(angle) * distance,
+        scatterX: pointX + Math.cos(angle) * scatterRadiusX * distance,
+        scatterY: pointY + Math.sin(angle) * scatterRadiusY * distance,
         radius: step * (0.3 + Math.min(coverage * 0.3, 0.14) + Math.random() * 0.04),
         phase,
+        timing: Math.random(),
       })
     }
   }
@@ -216,6 +239,14 @@ function buildParticles() {
   particles = nextParticles
   isReady.value = particles.length > 0
   draw()
+}
+
+function scheduleBuildParticles() {
+  cancelAnimationFrame(resizeFrame)
+  resizeFrame = requestAnimationFrame(() => {
+    resizeFrame = 0
+    buildParticles()
+  })
 }
 
 function onMotionChange(event) {
@@ -231,8 +262,9 @@ onMounted(async () => {
   await nextTick()
   buildParticles()
 
-  resizeObserver = new ResizeObserver(buildParticles)
+  resizeObserver = new ResizeObserver(scheduleBuildParticles)
   resizeObserver.observe(label.value)
+  window.addEventListener('resize', scheduleBuildParticles)
   motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
   reducedMotion = motionQuery.matches
   motionQuery.addEventListener('change', onMotionChange)
@@ -240,7 +272,9 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   cancelAnimationFrame(animationFrame)
+  cancelAnimationFrame(resizeFrame)
   resizeObserver?.disconnect()
+  window.removeEventListener('resize', scheduleBuildParticles)
   motionQuery?.removeEventListener('change', onMotionChange)
 })
 </script>
@@ -279,8 +313,8 @@ onBeforeUnmount(() => {
 
 .particle-text-link__canvas {
   position: absolute;
-  top: calc(-1 * var(--particle-bleed, 0px));
-  left: calc(-1 * var(--particle-bleed, 0px));
+  top: calc(-1 * var(--particle-bleed-y, 0px));
+  left: calc(-1 * var(--particle-bleed-x, 0px));
   max-width: none;
   pointer-events: none;
 }

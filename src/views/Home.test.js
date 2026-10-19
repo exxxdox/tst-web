@@ -20,6 +20,11 @@ test('merged home renders Performance and Links as scroll-revealed sections', ()
   )
   assert.doesNotMatch(source, /Watch performance|Explore instruments|hero__action/)
   assert.match(source, /@keyframes hero-link-float/)
+  assert.match(
+    source,
+    /\.hero-stage \{[\s\S]*?z-index: 21;[\s\S]*?overflow: clip;[\s\S]*?overflow-clip-margin: 30vmax;/,
+  )
+  assert.match(source, /@media \(max-width: 760px\)[\s\S]*?\.hero-stage \{[\s\S]*?z-index: 101;/)
   assert.match(source, /\.hero__mark \{[\s\S]*?width: fit-content;[\s\S]*?text-align: center;/)
   assert.match(source, /prefers-reduced-motion[\s\S]*?\.hero__mark-link[\s\S]*?animation: none/)
 })

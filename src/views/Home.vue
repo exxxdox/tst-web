@@ -98,13 +98,15 @@ onBeforeUnmount(() => {
 /* 首屏只负责排版：粒子画固定在整页背景层 */
 .hero-stage {
   position: relative;
-  z-index: 1;
+  /* 爆炸粒子需要越过透明导航绘制；Canvas 不接收指针，导航仍可点击。 */
+  z-index: 21;
   /* 滚动时按与视口中心的距离淡入淡出，边缘内容不抢中心焦点 */
   opacity: var(--scene-fade, 1);
   display: grid;
   align-items: center;
   min-height: calc(100vh - var(--nav-height));
-  overflow: hidden;
+  overflow: clip;
+  overflow-clip-margin: 30vmax;
   padding-block: clamp(3rem, 7vw, 7rem);
 }
 
@@ -273,9 +275,11 @@ onBeforeUnmount(() => {
   }
 }
 
-/* 移动端适配：保留装饰元素，重排为雅致的窄屏构图，层级低于导航 */
+/* 移动端适配：保留装饰元素，重排为雅致的窄屏构图。 */
 @media (max-width: 760px) {
   .hero-stage {
+    /* 小屏导航层级为 100，粒子层必须继续位于其上方。 */
+    z-index: 101;
     min-height: auto;
     padding-block: 2rem 5rem;
   }

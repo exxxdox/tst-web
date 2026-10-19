@@ -1,6 +1,7 @@
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import BlueGiant from '@/components/BlueGiant.vue'
+import ParticleTextLink from '@/components/ParticleTextLink.vue'
 import PerformanceSection from '@/components/PerformanceSection.vue'
 import LinksSection from '@/components/LinksSection.vue'
 import { observeReveal } from '@/utils/scrollReveal.js'
@@ -61,15 +62,16 @@ onBeforeUnmount(() => {
       <div class="hero container">
         <!-- 标题直接承担两个区块入口，避免重复 CTA。 -->
         <h1 id="home-title" class="hero__mark">
-          <AppLink class="hero__mark-link" :to="{ name: 'Home', hash: '#performance' }">
-            <span class="hero__mark-word">Music</span>
-          </AppLink>
-          <br /><span class="hero__mark-amp">&amp;</span><br /><AppLink
+          <ParticleTextLink
             class="hero__mark-link"
+            text="Music"
+            :to="{ name: 'Home', hash: '#performance' }"
+          />
+          <br /><span class="hero__mark-amp">&amp;</span><br /><ParticleTextLink
+            class="hero__mark-link"
+            text="Code"
             :to="{ name: 'Home', hash: '#links' }"
-          >
-            <span class="hero__mark-word">Code</span>
-          </AppLink>
+          />
         </h1>
       </div>
     </section>
@@ -143,10 +145,6 @@ onBeforeUnmount(() => {
   animation-delay: -3.1s;
 }
 
-.hero__mark-word {
-  display: inline-block;
-}
-
 .hero__mark-link:hover,
 .hero__mark-link:focus-visible {
   color: #ffb347;
@@ -155,23 +153,6 @@ onBeforeUnmount(() => {
 
 .hero__mark-amp {
   font-size: 0.72em;
-}
-
-/* 只用合成层改变当前字形，避免尺寸变化带动其他标题文字。 */
-.hero__mark-link:hover .hero__mark-word,
-.hero__mark-link:focus-visible .hero__mark-word {
-  animation: hero-word-disperse 0.8s ease-in-out infinite alternate;
-}
-
-@keyframes hero-word-disperse {
-  55% {
-    opacity: 0.72;
-    transform: translateX(-0.025em) skewX(-2deg);
-  }
-  100% {
-    opacity: 0.42;
-    transform: translateX(0.055em) skewX(4deg);
-  }
 }
 
 @keyframes hero-link-float {
@@ -203,9 +184,8 @@ onBeforeUnmount(() => {
     opacity: 1;
   }
 
-  /* 减少动态时只变色，不移动或拆分字形。 */
-  .hero__mark-link,
-  .hero__mark-word {
+  /* 减少动态时只变色，不移动字形。 */
+  .hero__mark-link {
     animation: none;
   }
 }

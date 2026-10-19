@@ -93,6 +93,9 @@ onBeforeUnmount(() => {
   --color-accent: #3dff8d;
   --color-accent-warm: #ffb347;
   --color-heading: #ffffff;
+  /* hero-stage 的 overflow-clip-margin 会把 60vw 水印旋转后越界的部分计入可滚动区域，
+     在视口右侧撑出约 242px 的横向滚动；只裁横向，纵向保持 visible 以免破坏锚点与粒子溢出。 */
+  overflow-x: clip;
 }
 
 /* 首屏只负责排版：粒子画固定在整页背景层 */

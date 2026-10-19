@@ -24,6 +24,8 @@ test('merged home renders Performance and Links as scroll-revealed sections', ()
     source,
     /\.hero-stage \{[\s\S]*?z-index: 21;[\s\S]*?overflow: clip;[\s\S]*?overflow-clip-margin: 30vmax;/,
   )
+  // clip-margin 会扩大可滚动区域，必须在首页外壳裁掉横向溢出，否则出现左右滚动条。
+  assert.match(source, /\.home-page \{[\s\S]*?overflow-x: clip;/)
   assert.match(source, /@media \(max-width: 760px\)[\s\S]*?\.hero-stage \{[\s\S]*?z-index: 101;/)
   // 首屏层级高于导航，外壳必须让出指针，否则滚动后整块盖住 TST 品牌链接。
   assert.match(source, /\.hero-stage \{[\s\S]*?pointer-events: none;/)

@@ -62,10 +62,14 @@ onBeforeUnmount(() => {
         <!-- 标题直接承担两个区块入口，避免重复 CTA。 -->
         <h1 id="home-title" class="hero__mark">
           <AppLink class="hero__mark-link" :to="{ name: 'Home', hash: '#performance' }">
-            Music
+            <span class="hero__mark-word">Music</span>
           </AppLink>
-          &amp;<br />
-          <AppLink class="hero__mark-link" :to="{ name: 'Home', hash: '#links' }"> Code </AppLink>
+          <br /><span class="hero__mark-amp">&amp;</span><br /><AppLink
+            class="hero__mark-link"
+            :to="{ name: 'Home', hash: '#links' }"
+          >
+            <span class="hero__mark-word">Code</span>
+          </AppLink>
         </h1>
       </div>
     </section>
@@ -125,6 +129,66 @@ onBeforeUnmount(() => {
   transform: none;
 }
 
+.hero__mark-link {
+  position: relative;
+  display: inline-block;
+  color: inherit;
+  font-weight: inherit;
+  /* 不规则关键点配合不同周期，形成自然漂移而不引入运行时随机数。 */
+  animation: hero-link-float 4.7s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+}
+
+.hero__mark-link:last-child {
+  animation-duration: 5.3s;
+  animation-delay: -3.1s;
+}
+
+.hero__mark-word {
+  display: inline-block;
+}
+
+.hero__mark-link:hover,
+.hero__mark-link:focus-visible {
+  color: #ffb347;
+  animation-play-state: paused;
+}
+
+.hero__mark-amp {
+  font-size: 0.72em;
+}
+
+/* 只用合成层改变当前字形，避免尺寸变化带动其他标题文字。 */
+.hero__mark-link:hover .hero__mark-word,
+.hero__mark-link:focus-visible .hero__mark-word {
+  animation: hero-word-disperse 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes hero-word-disperse {
+  55% {
+    opacity: 0.72;
+    transform: translateX(-0.025em) skewX(-2deg);
+  }
+  100% {
+    opacity: 0.42;
+    transform: translateX(0.055em) skewX(4deg);
+  }
+}
+
+@keyframes hero-link-float {
+  18% {
+    transform: translate(0.018em, -0.042em) rotate(-0.35deg);
+  }
+  41% {
+    transform: translate(-0.035em, -0.015em) rotate(0.24deg);
+  }
+  67% {
+    transform: translate(0.028em, 0.038em) rotate(0.4deg);
+  }
+  84% {
+    transform: translate(-0.012em, 0.02em) rotate(-0.18deg);
+  }
+}
+
 /* 减少动态偏好下直接显示：区块不能因为不触发过渡而永久透明 */
 @media (prefers-reduced-motion: reduce) {
   .scene > * {
@@ -138,6 +202,12 @@ onBeforeUnmount(() => {
   .scene {
     opacity: 1;
   }
+
+  /* 减少动态时只变色，不移动或拆分字形。 */
+  .hero__mark-link,
+  .hero__mark-word {
+    animation: none;
+  }
 }
 
 .hero {
@@ -148,8 +218,10 @@ onBeforeUnmount(() => {
 }
 
 .hero__mark {
+  width: fit-content;
   max-width: none;
   color: #ffffff;
+  text-align: center;
   /* 两行标题用 h1 阶梯，避免 display 字号过大压过粒子画 */
   font-size: var(--fs-h1);
   /* 内层黑投影保证白粒子上的轮廓，外层绿/橙错位投影对应品牌双色 */
@@ -158,11 +230,6 @@ onBeforeUnmount(() => {
     0.075em 0.075em 0 rgba(61, 255, 141, 0.35),
     -0.05em -0.05em 0 rgba(255, 179, 71, 0.42),
     0 0 42px rgba(0, 0, 0, 0.85);
-}
-
-.hero__mark-link {
-  color: inherit;
-  font-weight: inherit;
 }
 
 /* SignalStrip 内部有绿色/暖色硬编码，首页用 :deep 覆盖成黑白灰并保留高对比 */

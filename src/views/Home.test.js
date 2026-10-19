@@ -25,6 +25,9 @@ test('merged home renders Performance and Links as scroll-revealed sections', ()
     /\.hero-stage \{[\s\S]*?z-index: 21;[\s\S]*?overflow: clip;[\s\S]*?overflow-clip-margin: 30vmax;/,
   )
   assert.match(source, /@media \(max-width: 760px\)[\s\S]*?\.hero-stage \{[\s\S]*?z-index: 101;/)
+  // 首屏层级高于导航，外壳必须让出指针，否则滚动后整块盖住 TST 品牌链接。
+  assert.match(source, /\.hero-stage \{[\s\S]*?pointer-events: none;/)
+  assert.match(source, /\.hero \{[\s\S]*?pointer-events: auto;/)
   assert.match(source, /\.hero__mark \{[\s\S]*?width: fit-content;[\s\S]*?text-align: center;/)
   assert.match(source, /prefers-reduced-motion[\s\S]*?\.hero__mark-link[\s\S]*?animation: none/)
 })

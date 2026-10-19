@@ -98,8 +98,10 @@ onBeforeUnmount(() => {
 /* 首屏只负责排版：粒子画固定在整页背景层 */
 .hero-stage {
   position: relative;
-  /* 爆炸粒子需要越过透明导航绘制；Canvas 不接收指针，导航仍可点击。 */
+  /* 爆炸粒子需要越过透明导航绘制。层级高于导航后，整块区块（含空白区）会拦截导航点击，
+     因此外壳必须不接收指针，交互只由内部 .hero 恢复。 */
   z-index: 21;
+  pointer-events: none;
   /* 滚动时按与视口中心的距离淡入淡出，边缘内容不抢中心焦点 */
   opacity: var(--scene-fade, 1);
   display: grid;
@@ -194,6 +196,8 @@ onBeforeUnmount(() => {
 
 .hero {
   z-index: 3;
+  /* 首屏外壳已让出指针，标题链接需要恢复命中。 */
+  pointer-events: auto;
   display: grid;
   align-self: center;
   gap: clamp(1rem, 2vw, 1.5rem);

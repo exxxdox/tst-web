@@ -1,7 +1,6 @@
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import BlueGiant from '@/components/BlueGiant.vue'
-import SignalStrip from '@/components/SignalStrip.vue'
 import PerformanceSection from '@/components/PerformanceSection.vue'
 import LinksSection from '@/components/LinksSection.vue'
 import { observeReveal } from '@/utils/scrollReveal.js'
@@ -60,19 +59,14 @@ onBeforeUnmount(() => {
       <div class="centered-rotated-text">TST</div>
 
       <div class="hero container">
-        <h1 id="home-title" class="hero__mark">Music &amp;<br />Code</h1>
-        <div class="hero__actions" aria-label="Primary links">
-          <AppLink
-            class="hero__action hero__action--primary"
-            :to="{ name: 'Home', hash: '#performance' }"
-          >
-            Watch performance
+        <!-- 标题直接承担两个区块入口，避免重复 CTA。 -->
+        <h1 id="home-title" class="hero__mark">
+          <AppLink class="hero__mark-link" :to="{ name: 'Home', hash: '#performance' }">
+            Music
           </AppLink>
-          <AppLink class="hero__action" :to="{ name: 'Home', hash: '#links' }">
-            Explore instruments
-          </AppLink>
-        </div>
-        <SignalStrip input="Guitar" output="Code" />
+          &amp;<br />
+          <AppLink class="hero__mark-link" :to="{ name: 'Home', hash: '#links' }"> Code </AppLink>
+        </h1>
       </div>
     </section>
 
@@ -166,60 +160,9 @@ onBeforeUnmount(() => {
     0 0 42px rgba(0, 0, 0, 0.85);
 }
 
-.hero__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.85rem;
-  padding-top: 0.5rem;
-}
-
-.hero__action {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.65rem;
-  min-height: 3rem;
-  padding: 0.78rem 1.05rem;
-  color: #f5f5f5;
-  /* 半透明黑底 + 白描边：压在亮粒子上按钮边界仍然清晰 */
-  background: rgba(8, 8, 8, 0.72);
-  border: 1px solid rgba(61, 255, 141, 0.34);
-  border-radius: 7px;
-  box-shadow:
-    0 12px 28px rgba(0, 0, 0, 0.45),
-    0 0 20px rgba(61, 255, 141, 0.12),
-    0 1px 0 rgba(255, 255, 255, 0.08) inset;
-  backdrop-filter: blur(4px);
-}
-
-.hero__action--primary {
-  color: #150d02;
-  /* 暖色只给主 CTA，黑白画面上形成唯一视觉锚点 */
-  background: #ffb347;
-  border-color: #ffd39a;
-  box-shadow:
-    0 12px 30px rgba(0, 0, 0, 0.5),
-    0 0 24px rgba(255, 179, 71, 0.28),
-    0 0 44px rgba(61, 255, 141, 0.14);
-}
-
-/* 全局 a:hover 会把文字刷成 --hover-color（首页为白），暖底上必须保持深色文字 */
-.hero__action--primary:hover {
-  color: #150d02;
-}
-
-.hero__action--primary::after {
-  width: 0.45rem;
-  height: 0.45rem;
-  content: '';
-  /* 品牌绿作为电源指示灯，和暖橙主按钮形成双色 */
-  background: #3dff8d;
-  border-radius: 50%;
-  box-shadow: 0 0 0.6rem rgba(61, 255, 141, 0.75);
-}
-
-.hero__action:hover {
-  transform: translateY(-2px);
+.hero__mark-link {
+  color: inherit;
+  font-weight: inherit;
 }
 
 /* SignalStrip 内部有绿色/暖色硬编码，首页用 :deep 覆盖成黑白灰并保留高对比 */
@@ -297,20 +240,6 @@ onBeforeUnmount(() => {
   /* 小屏单列布局留白多，标题放大一档增强首屏存在感 */
   .hero__mark {
     font-size: clamp(3.5rem, 15vw, 5rem);
-  }
-
-  .hero__actions {
-    align-items: stretch;
-    flex-direction: column;
-    gap: 0.65rem;
-    max-width: 16rem;
-  }
-
-  /* 小屏按钮收紧尺寸，避免占满整屏宽度 */
-  .hero__action {
-    min-height: 2.5rem;
-    padding: 0.6rem 0.85rem;
-    font-size: 0.95rem;
   }
 
   /* TST 作为居中浅色水印 */

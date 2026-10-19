@@ -1,40 +1,6 @@
 <script>
 export default {
   name: 'TheNavigation',
-  data() {
-    return {
-      activeSection: '',
-    }
-  },
-  mounted() {
-    this.scrollFrame = 0
-    window.addEventListener('scroll', this.onScroll, { passive: true })
-    this.onScroll()
-  },
-  beforeUnmount() {
-    window.removeEventListener('scroll', this.onScroll)
-    cancelAnimationFrame(this.scrollFrame)
-  },
-  methods: {
-    onScroll() {
-      // 合并到一帧，避免高刷设备重复读取布局。
-      if (this.scrollFrame) return
-      this.scrollFrame = requestAnimationFrame(() => {
-        this.scrollFrame = 0
-        this.updateActiveSection()
-      })
-    },
-    updateActiveSection() {
-      // 区块与导航同页，按视口中线判断当前区块。
-      const midline = window.innerHeight / 2
-      let current = ''
-      for (const id of ['performance', 'links']) {
-        const rect = document.getElementById(id)?.getBoundingClientRect()
-        if (rect && rect.top <= midline && rect.bottom > midline) current = id
-      }
-      this.activeSection = current
-    },
-  },
 }
 </script>
 
@@ -43,22 +9,8 @@ export default {
   <header class="nav-container" :class="{ 'nav--home': $route.name === 'Home' }">
     <nav class="left" aria-label="Primary navigation">
       <AppLink class="brand-link" :to="{ name: 'Home' }" aria-label="TST home">TST</AppLink>
-      <AppLink
-        class="nav-link"
-        :class="{ 'is-current': activeSection === 'performance' }"
-        :aria-current="activeSection === 'performance' ? 'true' : undefined"
-        :to="{ name: 'Home', hash: '#performance' }"
-        >Performance</AppLink
-      >
-      <AppLink
-        class="nav-link"
-        :class="{ 'is-current': activeSection === 'links' }"
-        :aria-current="activeSection === 'links' ? 'true' : undefined"
-        :to="{ name: 'Home', hash: '#links' }"
-        >Links</AppLink
-      >
     </nav>
-    <!-- 移动端折叠站内链接后，这一组社交图标占据原菜单按钮的位置 -->
+    <!-- 社交图标固定在导航右侧，保持主品牌入口独立。 -->
     <div class="foot">
       <AppLink class="social-link" to="https://github.com/exxxdox">
         <img alt="github logo" class="logo" src="/svg/github.svg" />
@@ -92,12 +44,7 @@ export default {
   border-bottom-color: transparent;
   backdrop-filter: none;
 }
-/* 透明背景下给链接加一层暗色投影，压在亮部粒子上仍然可读。 */
-.nav-container.nav--home .nav-link {
-  color: rgba(255, 255, 255, 0.88);
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.95);
-}
-/* 首页粒子画是黑白灰：品牌字与导航链接统一去色。 */
+/* 首页粒子画是黑白灰：品牌字去色后与背景一致。 */
 .nav-container.nav--home .brand-link {
   color: #ffffff;
   /* 黑白错位投影替代原绿/橙荧光，保证压在亮粒子上仍有轮廓 */
@@ -107,16 +54,9 @@ export default {
     -0.05em -0.05em 0 rgba(120, 120, 120, 0.4),
     0 0 22px rgba(0, 0, 0, 0.9);
 }
-.nav-container.nav--home .nav-link.router-link-active {
-  color: #ffffff;
-  /* 导航保持黑白灰：当前区块只用白色下划线标记 */
-  border-bottom-color: rgba(255, 255, 255, 0.85);
-}
 .left {
   display: grid;
   align-items: center;
-  grid-template-columns: repeat(3, auto);
-  gap: clamp(1rem, 3vw, 2rem);
 }
 .brand-link {
   color: var(--color-heading);
@@ -128,14 +68,6 @@ export default {
   text-shadow:
     0.08em 0.08em 0 rgba(61, 255, 141, 0.46),
     -0.045em -0.045em 0 rgba(255, 179, 71, 0.46);
-}
-.nav-link {
-  padding-block: 0.4rem;
-  color: rgba(222, 255, 238, 0.78);
-  /* 与左侧 TST 标志统一使用显示字体 */
-  font-family: var(--font-display);
-  font-size: clamp(0.92rem, 1.5vw, 1rem);
-  letter-spacing: 0.04em;
 }
 .foot {
   display: flex;
@@ -158,16 +90,7 @@ export default {
 .router-link-active {
   color: var(--hover-color);
 }
-/* 同页锚点会让两个 router-link-active 同时命中，区块高亮改由滚动观察决定 */
-.nav-link.router-link-active {
-  color: rgba(222, 255, 238, 0.78);
-}
-.nav-link.is-current {
-  color: #ffffff;
-  border-bottom: 2px solid rgba(255, 255, 255, 0.85);
-}
-/* 全局 a:hover 会把链接刷成品牌绿，导航内统一停留在黑白灰 */
-.nav-container .nav-link:hover,
+/* 全局 a:hover 会把链接刷成品牌绿，导航品牌统一停留在黑白灰 */
 .nav-container .brand-link:hover {
   color: #ffffff;
 }
@@ -199,10 +122,6 @@ export default {
     overflow: hidden;
     font-size: 2rem;
     white-space: nowrap;
-  }
-  /* 移动端隐藏站内链接，只保留品牌与右侧社交入口 */
-  .left > a:not(:first-child) {
-    display: none;
   }
   .foot {
     gap: 12px;

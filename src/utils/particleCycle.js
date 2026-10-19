@@ -8,12 +8,62 @@ export function getCycleIndex(elapsedMs, count, dwellMs) {
 }
 
 /**
+ * 累积高刷新率下不足一帧的时间，只在达到目标间隔时消费完整步长。
+ */
+export function consumeFrameTime(accumulatedMs, elapsedMs, frameIntervalMs, maxDeltaSeconds) {
+  const total = Math.max(0, accumulatedMs) + Math.max(0, elapsedMs)
+  if (!(frameIntervalMs > 0) || total < frameIntervalMs) {
+    return { dt: 0, remainderMs: total }
+  }
+
+  const maxDeltaMs = Math.max(0, maxDeltaSeconds) * 1000
+  const remainderMs = total % frameIntervalMs
+  const consumedMs = Math.min(total - remainderMs, maxDeltaMs)
+  return {
+    dt: consumedMs / 1000,
+    // 后台恢复时丢弃被上限截断的积压，避免随后连续追帧。
+    remainderMs: total - remainderMs > maxDeltaMs ? 0 : remainderMs,
+  }
+}
+
+/**
+ * 失败帧经过冷却后可重试，避免永久缺帧或逐动画帧重复请求。
+ */
+export function isFrameRetryReady(failedAt, now, retryDelayMs) {
+  return failedAt === undefined || now - failedAt >= retryDelayMs
+}
+
+/**
  * 按帧顺序寻找第一张可用图片，避免单张资源失败时阻断整段动画。
  */
 export async function findFirstAvailableFrame(urls, loadImage) {
   for (let index = 0; index < urls.length; index += 1) {
     const image = await loadImage(urls[index])
     if (image) return { image, index }
+  }
+  return null
+}
+
+/**
+ * 从已提前加载的首帧继续查找，跳过无法读取像素的图片。
+ */
+export async function findFirstRenderableFrame(
+  urls,
+  loadImage,
+  buildTargets,
+  initialFrame,
+  canTryNext = () => true,
+) {
+  const startIndex = initialFrame?.index ?? 0
+  for (let index = startIndex; index < urls.length; index += 1) {
+    const image = index === initialFrame?.index ? initialFrame.image : await loadImage(urls[index])
+    if (!image) continue
+    try {
+      return { image, index, targets: buildTargets(image) }
+    } catch (error) {
+      // 单帧像素不可读时继续找下一张，减少动态模式也不能永久空白。
+      if (!canTryNext(error)) return null
+    }
   }
   return null
 }

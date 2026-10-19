@@ -27,7 +27,7 @@ pnpm format       # 格式化 src/、README 与根配置
 
 `App.vue` 是唯一外壳，四个东西：`TheNavigation`、`RouterView`、`TheFooter`（`$route.name === 'Home'` 时隐藏）、以及 Vercel 的 `Analytics` / `SpeedInsights`。
 
-**路由**：`createWebHashHistory` → URL 形如 `/#/links`。三条页面路由（Home / Performance / Links）全部懒加载，catch-all 重定向 Home。`main.js` 监听 `vite:preloadError`，新版部署使旧 chunk 失效时只刷新一次。hash 模式是为静态托管选的，改成 history 模式前必须先确认托管方 SPA fallback。
+**路由**：`createWebHashHistory` → URL 形如 `/#/links`。Home 静态导入，避免首屏出现 entry → Home chunk → Home CSS 的串行发现链；Performance / Links 懒加载，catch-all 重定向 Home。`main.js` 监听 `vite:preloadError`，新版部署使旧 chunk 失效时只刷新一次。hash 模式是为静态托管选的，改成 history 模式前必须先确认托管方 SPA fallback。
 
 **`AppLink.vue` 是唯一的链接原语**，已在 `main.js` 全局注册，页面里直接用、不用 import：
 

@@ -1,6 +1,7 @@
 <script setup>
 import { nextTick, ref } from 'vue'
 import SignalStrip from '@/components/SignalStrip.vue'
+import { focusAfterRender } from '@/utils/focusAfterRender.js'
 
 const bilibiliPlayerUrl =
   'https://player.bilibili.com/player.html?bvid=BV1yCXAYRECD&page=1&high_quality=1&danmaku=0'
@@ -11,8 +12,7 @@ const player = ref(null)
 async function play() {
   isPlaying.value = true
   // 按钮会被 iframe 替换，主动交接焦点，避免键盘位置回到文档开头。
-  await nextTick()
-  player.value?.focus()
+  await focusAfterRender(nextTick, () => player.value)
 }
 </script>
 

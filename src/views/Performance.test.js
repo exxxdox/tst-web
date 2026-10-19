@@ -4,9 +4,8 @@ import test from 'node:test'
 
 const source = await readFile(new URL('./Performance.vue', import.meta.url), 'utf8')
 
-test('video player receives focus after replacing the play button', () => {
+test('play button wires iframe replacement to post-render focus', () => {
   assert.match(source, /@click="play"/)
-  assert.match(source, /await nextTick\(\)/)
-  assert.match(source, /player\.value\?\.focus\(\)/)
+  assert.match(source, /await focusAfterRender\(nextTick, \(\) => player\.value\)/)
   assert.match(source, /ref="player"/)
 })

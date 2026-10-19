@@ -11,14 +11,29 @@ export function installPreloadRecovery(router, browserWindow = window) {
 
   // 新部署删除旧 chunk 时只刷新一次，避免旧页面永久白屏或循环刷新。
   browserWindow.addEventListener('vite:preloadError', (event) => {
-    event.preventDefault()
-    if (storage.getItem(preloadReloadKey)) return
+    try {
+      if (storage.getItem(preloadReloadKey)) {
+        event.preventDefault()
+        return
+      }
 
-    storage.setItem(preloadReloadKey, '1')
+      storage.setItem(preloadReloadKey, '1')
+    } catch {
+      // 存储失败时保留 Vite 原始错误，不能把未恢复的故障静默吞掉。
+      return
+    }
+
+    event.preventDefault()
     browserWindow.location.reload()
   })
 
   router.afterEach((_to, _from, failure) => {
-    if (!failure) storage.removeItem(preloadReloadKey)
+    if (!failure) {
+      try {
+        storage.removeItem(preloadReloadKey)
+      } catch {
+        // 清理失败不应把一次成功导航改成路由错误。
+      }
+    }
   })
 }

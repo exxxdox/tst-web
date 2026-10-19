@@ -1,6 +1,13 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { assignParticleTargets, findFirstAvailableFrame, getCycleIndex } from './particleCycle.js'
+import {
+  assignParticleTargets,
+  consumeFrameTime,
+  findFirstAvailableFrame,
+  findFirstRenderableFrame,
+  getCycleIndex,
+  isFrameRetryReady,
+} from './particleCycle.js'
 
 test('getCycleIndex stays on the first frame until the dwell time elapses', () => {
   assert.equal(getCycleIndex(0, 10, 2400), 0)
@@ -19,6 +26,28 @@ test('getCycleIndex falls back to zero on invalid input', () => {
   assert.equal(getCycleIndex(100, 10, 0), 0)
 })
 
+test('consumeFrameTime limits rendering to the target rate without losing fractional time', () => {
+  const waiting = consumeFrameTime(0, 1000 / 144, 1000 / 60, 0.05)
+  assert.equal(waiting.dt, 0)
+
+  const ready = consumeFrameTime(waiting.remainderMs, (1000 / 144) * 2, 1000 / 60, 0.05)
+  assert.equal(ready.dt, 1 / 60)
+  assert.ok(ready.remainderMs > 0)
+})
+
+test('consumeFrameTime caps background gaps and drops their backlog', () => {
+  assert.deepEqual(consumeFrameTime(0, 2000, 1000 / 60, 0.05), {
+    dt: 0.05,
+    remainderMs: 0,
+  })
+})
+
+test('isFrameRetryReady applies a bounded retry cooldown', () => {
+  assert.equal(isFrameRetryReady(undefined, 1000, 5000), true)
+  assert.equal(isFrameRetryReady(1000, 5999, 5000), false)
+  assert.equal(isFrameRetryReady(1000, 6000, 5000), true)
+})
+
 test('findFirstAvailableFrame skips failed frames', async () => {
   const requested = []
   const result = await findFirstAvailableFrame(['frame-0', 'frame-1', 'frame-2'], async (url) => {
@@ -28,6 +57,50 @@ test('findFirstAvailableFrame skips failed frames', async () => {
 
   assert.deepEqual(requested, ['frame-0', 'frame-1'])
   assert.deepEqual(result, { image: { url: 'frame-1' }, index: 1 })
+})
+
+test('findFirstRenderableFrame skips loaded images that cannot be sampled', async () => {
+  const loaded = []
+  const initialFrame = { image: { url: 'frame-0' }, index: 0 }
+  const result = await findFirstRenderableFrame(
+    ['frame-0', 'frame-1', 'frame-2'],
+    async (url) => {
+      loaded.push(url)
+      return { url }
+    },
+    (image) => {
+      if (image.url !== 'frame-2') throw new Error('unreadable pixels')
+      return [`targets:${image.url}`]
+    },
+    initialFrame,
+  )
+
+  assert.deepEqual(loaded, ['frame-1', 'frame-2'])
+  assert.deepEqual(result, {
+    image: { url: 'frame-2' },
+    index: 2,
+    targets: ['targets:frame-2'],
+  })
+})
+
+test('findFirstRenderableFrame stops when the sampling environment is unavailable', async () => {
+  const loaded = []
+  const fatalError = new Error('sampling context unavailable')
+  const result = await findFirstRenderableFrame(
+    ['frame-0', 'frame-1'],
+    async (url) => {
+      loaded.push(url)
+      return { url }
+    },
+    () => {
+      throw fatalError
+    },
+    { image: { url: 'frame-0' }, index: 0 },
+    (error) => error !== fatalError,
+  )
+
+  assert.equal(result, null)
+  assert.deepEqual(loaded, [])
 })
 
 test('assignParticleTargets pairs particles by spatial order and anchors surplus particles locally', () => {

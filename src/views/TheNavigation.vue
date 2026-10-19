@@ -48,6 +48,10 @@ export default {
         this.$nextTick(() => this.$refs.menuButton?.focus())
       }
     },
+    closeForRoute(routeName) {
+      // 同页点击不会触发路由 watcher，必须主动把焦点移出即将 inert 的抽屉。
+      this.close({ restoreFocus: this.$route.name === routeName })
+    },
     onKeydown(e) {
       if (!this.isOpen) return
 
@@ -60,6 +64,8 @@ export default {
     onResize() {
       if (window.innerWidth > 760 && this.isOpen) {
         this.close({ restoreFocus: false })
+        // 桌面断点会隐藏菜单按钮，改为聚焦仍可见的品牌链接。
+        this.$nextTick(() => this.$refs.desktopBrand?.$el?.focus())
       }
     },
     trapDrawerFocus(e) {
@@ -86,7 +92,9 @@ export default {
   <!-- 首页的粒子画从视口顶部铺满，导航去掉底色，避免遮挡画面 -->
   <header class="nav-container" :class="{ 'nav--home': $route.name === 'Home' }">
     <nav class="left" aria-label="Primary navigation">
-      <AppLink class="brand-link" :to="{ name: 'Home' }" aria-label="TST home">TST</AppLink>
+      <AppLink ref="desktopBrand" class="brand-link" :to="{ name: 'Home' }" aria-label="TST home">
+        TST
+      </AppLink>
       <AppLink class="nav-link" :to="{ name: 'Performance' }">Performance</AppLink>
       <AppLink class="nav-link" :to="{ name: 'Links' }">Links</AppLink>
     </nav>
@@ -136,11 +144,11 @@ export default {
         ×
       </button>
       <nav class="drawer-nav">
-        <AppLink :to="{ name: 'Home' }" @click="close({ restoreFocus: false })">Home</AppLink>
-        <AppLink :to="{ name: 'Performance' }" @click="close({ restoreFocus: false })">
+        <AppLink :to="{ name: 'Home' }" @click="closeForRoute('Home')">Home</AppLink>
+        <AppLink :to="{ name: 'Performance' }" @click="closeForRoute('Performance')">
           Performance
         </AppLink>
-        <AppLink :to="{ name: 'Links' }" @click="close({ restoreFocus: false })">Links</AppLink>
+        <AppLink :to="{ name: 'Links' }" @click="closeForRoute('Links')">Links</AppLink>
       </nav>
       <div class="drawer-foot">
         <AppLink to="https://github.com/exxxdox" @click="close">

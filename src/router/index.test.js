@@ -5,11 +5,10 @@ import test from 'node:test'
 const routerSource = await readFile(new URL('./index.js', import.meta.url), 'utf8')
 const appSource = await readFile(new URL('../App.vue', import.meta.url), 'utf8')
 
-test('route changes update the page title and focus the main content', () => {
+test('route metadata and post-render focus are wired into the app', () => {
   assert.match(routerSource, /meta: \{ title: 'Website of TST \| Rory' \}/)
   assert.match(routerSource, /meta: \{ title: 'Performance \| TST' \}/)
   assert.match(routerSource, /meta: \{ title: 'Links \| TST' \}/)
   assert.match(appSource, /document\.title = route\.meta\.title/)
-  assert.match(appSource, /await nextTick\(\)/)
-  assert.match(appSource, /focusMainContent\(\)/)
+  assert.match(appSource, /await focusAfterRender\(nextTick, focusMainContent\)/)
 })

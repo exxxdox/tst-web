@@ -2,8 +2,11 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import {
   assignParticleTargets,
+  consumeFrameTime,
   findFirstAvailableFrame,
+  findFirstRenderableFrame,
   getCycleIndex,
+  isFrameRetryReady,
 } from '@/utils/particleCycle'
 
 const canvas = ref(null)
@@ -46,11 +49,14 @@ const SIZE_RATE = 8.983
 const MAX_STEP = 1 / 60
 // 切后台回来时 dt 可能很大，截断避免粒子瞬移和积分发散。
 const MAX_DELTA = 0.05
+const FRAME_INTERVAL_MS = 1000 / 60
 const MAX_BACKING = 1800
 // 每张图停留 1.3s；轮播时长随帧数变化。
 const DWELL_MS = 1300
 // 提前 4 帧（约 5.2s）加载与采样，给网络留预算。
 const PREFETCH_AHEAD = 4
+// 一轮后再试瞬时失败；至少冷却 5s，避免少帧素材频繁请求。
+const RETRY_DELAY_MS = Math.max(DWELL_MS * FRAME_COUNT, 5000)
 
 let ctx = null
 let cssWidth = 0
@@ -60,12 +66,13 @@ let originX = 0
 let originY = 0
 let frameId = 0
 let resizeFrame = 0
-let prefetchHandle = 0
+let samplingHandle = null
 let reducedMotion = false
 let motionPreference = null
 let alive = true
 let startTime = 0
 let lastTime = 0
+let accumulatedFrameMs = 0
 let currentIndex = -1
 let appliedIndex = -1
 
@@ -77,11 +84,14 @@ const renderBuckets = Array.from({ length: ALPHA_LEVELS }, () => [])
 // 只缓存当前帧与下一帧的采样点，不驻留解码后的位图：
 // 帧数较多时全部解码常驻会占用上百 MB 位图内存。
 const targetsCache = new Map()
-// 正在加载与加载失败的帧，避免同一帧重复请求。
+// pending 覆盖下载与待采样阶段；失败时间用于有界冷却后重试。
 const pendingTargets = new Set()
-const failedTargets = new Set()
+const failedTargets = new Map()
+const samplingQueue = []
 
 const pointer = { x: -9999, y: -9999 }
+
+class CanvasSamplingUnavailableError extends Error {}
 
 function loadImage(url) {
   return new Promise((resolve) => {
@@ -96,11 +106,14 @@ function loadImage(url) {
 
 // 读取图片像素，按亮度采样成粒子目标点：亮部笔触饱满，暗部烟雾轻薄透明。
 function buildTargets(image) {
+  if (!image.naturalWidth) throw new Error('Frame has no readable width')
   const height = Math.max(1, Math.round((image.naturalHeight / image.naturalWidth) * SAMPLE_W))
   const offscreen = document.createElement('canvas')
   offscreen.width = SAMPLE_W
   offscreen.height = height
   const sampleCtx = offscreen.getContext('2d', { willReadFrequently: true })
+  // Context 缺失属于设备级故障，换一张图片也无法恢复。
+  if (!sampleCtx) throw new CanvasSamplingUnavailableError('Canvas sampling context is unavailable')
   sampleCtx.drawImage(image, 0, 0, SAMPLE_W, height)
   const data = sampleCtx.getImageData(0, 0, SAMPLE_W, height).data
 
@@ -126,6 +139,36 @@ function buildTargets(image) {
   }
 
   return points
+}
+
+function markTargetFailed(index) {
+  pendingTargets.delete(index)
+  failedTargets.set(index, performance.now())
+}
+
+// 每个空闲任务只采样一张图，避免多个 getImageData 连续阻塞主线程。
+function scheduleSampling() {
+  if (!alive || samplingHandle !== null || !samplingQueue.length) return
+  const run = () => {
+    samplingHandle = null
+    if (!alive) return
+    const { index, image } = samplingQueue.shift()
+    try {
+      targetsCache.set(index, buildTargets(image))
+      pruneTargets(currentIndex >= 0 ? currentIndex : index)
+      failedTargets.delete(index)
+      pendingTargets.delete(index)
+    } catch {
+      markTargetFailed(index)
+    }
+    scheduleSampling()
+  }
+
+  if (typeof requestIdleCallback === 'function') {
+    samplingHandle = requestIdleCallback(run, { timeout: 120 })
+  } else {
+    samplingHandle = setTimeout(run, 80)
+  }
 }
 
 function createParticle(target) {
@@ -170,20 +213,26 @@ function pruneTargets(keepIndex) {
   }
 }
 
-// 异步加载像素并采样成目标点；同一帧只发起一次请求。
+// 下载可并发；采样进入串行空闲队列，失败帧冷却一轮后可重试。
 function requestTargets(index) {
   if (!FRAME_COUNT) return
   const i = wrapIndex(index)
-  if (targetsCache.has(i) || pendingTargets.has(i) || failedTargets.has(i)) return
+  if (
+    targetsCache.has(i) ||
+    pendingTargets.has(i) ||
+    !isFrameRetryReady(failedTargets.get(i), performance.now(), RETRY_DELAY_MS)
+  ) {
+    return
+  }
   pendingTargets.add(i)
   loadImage(FRAME_URLS[i]).then((image) => {
-    pendingTargets.delete(i)
     if (!alive) return
     if (!image) {
-      failedTargets.add(i)
+      markTargetFailed(i)
       return
     }
-    targetsCache.set(i, buildTargets(image))
+    samplingQueue.push({ index: i, image })
+    scheduleSampling()
   })
 }
 
@@ -272,25 +321,21 @@ function render(moving, dt = 0) {
   ctx.restore()
 }
 
-// 后续帧的加载与像素采样放进空闲时段，避免和切帧挤在同一帧造成掉帧。
-// 超时必须小于 1.3s 的切帧间隔，否则采样会拖到切帧后才完成。
+// 同批图片并发下载；下载完成后的像素采样由空闲队列逐张处理。
 function prefetch(index) {
   if (!FRAME_COUNT) return
-  const run = () => {
-    if (!alive) return
-    for (let k = 0; k < PREFETCH_AHEAD; k += 1) requestTargets(index + k)
-  }
-  if (typeof requestIdleCallback === 'function') {
-    prefetchHandle = requestIdleCallback(run, { timeout: 120 })
-  } else {
-    prefetchHandle = setTimeout(run, 80)
-  }
+  for (let k = 0; k < PREFETCH_AHEAD; k += 1) requestTargets(index + k)
 }
 
 function tick(now) {
-  // 首帧按 60Hz 步长起步；之后用真实间隔，切后台回来时截断。
-  const dt = lastTime ? Math.min((now - lastTime) / 1000, MAX_DELTA) : MAX_STEP
+  const elapsedMs = lastTime ? now - lastTime : FRAME_INTERVAL_MS
   lastTime = now
+  const frameTime = consumeFrameTime(accumulatedFrameMs, elapsedMs, FRAME_INTERVAL_MS, MAX_DELTA)
+  accumulatedFrameMs = frameTime.remainderMs
+  if (!frameTime.dt) {
+    frameId = requestAnimationFrame(tick)
+    return
+  }
   if (FRAME_COUNT) {
     const index = getCycleIndex(now - startTime, FRAME_COUNT, DWELL_MS)
     if (index !== currentIndex) {
@@ -307,7 +352,7 @@ function tick(now) {
       }
     }
   }
-  render(true, dt)
+  render(true, frameTime.dt)
   frameId = requestAnimationFrame(tick)
 }
 
@@ -394,6 +439,7 @@ function handleMotionPreferenceChange(event) {
   if (appliedIndex < 0) return
   startTime = performance.now() - appliedIndex * DWELL_MS
   lastTime = 0
+  accumulatedFrameMs = 0
   frameId = requestAnimationFrame(tick)
 }
 
@@ -411,9 +457,17 @@ onMounted(async () => {
   document.documentElement.addEventListener('pointerleave', resetPointer)
 
   // 只等首张可用帧：其余帧按播放进度提前异步加载，不阻塞首屏。
-  const firstFrame = firstAvailableFrame ? await firstAvailableFrame : null
+  const loadedFirstFrame = firstAvailableFrame ? await firstAvailableFrame : null
+  if (!alive || !loadedFirstFrame) return
+  const firstFrame = await findFirstRenderableFrame(
+    FRAME_URLS,
+    loadImage,
+    buildTargets,
+    loadedFirstFrame,
+    (error) => !(error instanceof CanvasSamplingUnavailableError),
+  )
   if (!alive || !firstFrame) return
-  targetsCache.set(firstFrame.index, buildTargets(firstFrame.image))
+  targetsCache.set(firstFrame.index, firstFrame.targets)
   appliedIndex = firstFrame.index
   currentIndex = firstFrame.index
 
@@ -434,10 +488,11 @@ onBeforeUnmount(() => {
   cancelAnimationFrame(frameId)
   cancelAnimationFrame(resizeFrame)
   if (typeof cancelIdleCallback === 'function') {
-    cancelIdleCallback(prefetchHandle)
+    if (samplingHandle !== null) cancelIdleCallback(samplingHandle)
   } else {
-    clearTimeout(prefetchHandle)
+    if (samplingHandle !== null) clearTimeout(samplingHandle)
   }
+  samplingQueue.length = 0
   window.removeEventListener('resize', handleResize)
   window.removeEventListener('pointermove', handlePointerMove)
   document.documentElement.removeEventListener('pointerleave', resetPointer)

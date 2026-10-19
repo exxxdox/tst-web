@@ -254,6 +254,14 @@ async function play() {
   }
 }
 
+/* 小屏：高度预算会把 --stage-w 压到 20rem 下限，比 Links 卡片窄；
+   改为满栏宽度，和 Transcribe Website 卡片对齐。 */
+@media (max-width: 760px) {
+  .stage-frame {
+    width: 100%;
+  }
+}
+
 /* 桌面双列：文案与舞台并排。
    单列时页面高度 = 文案 + 间隙 + 舞台 三段相加，而舞台高度由 854/480 从宽度反推，
    1440×900 会撑到 1330px（溢 436px）、1024×768 撑到 1115px（溢 347px）。

@@ -13,7 +13,7 @@ pnpm install
 pnpm dev          # vite dev server
 pnpm build        # vite build → dist/
 pnpm preview      # 预览 dist
-pnpm test         # Node 内置测试；覆盖外链、chunk 恢复和焦点循环
+pnpm test         # Node 内置测试；覆盖外链、chunk 恢复和滚动显现
 pnpm check        # test + build + Prettier 检查
 pnpm format       # 格式化 src/、README 与根配置
 ```

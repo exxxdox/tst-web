@@ -13,10 +13,26 @@ let stopReveal = null
 function onScroll() {
   // 滚过首屏后降低粒子背景强度，避免干扰下方正文
   isScrolled.value = window.scrollY > window.innerHeight * 0.6
+  updateSceneFade()
+}
+
+// 区块中心越靠近视口中心越不透明；靠近上下边缘时淡出，避免边缘内容抢焦点。
+function updateSceneFade() {
+  const viewportHeight = window.innerHeight
+  const viewportCenter = viewportHeight / 2
+  const opaqueRange = viewportHeight * 0.35
+  const fadeRange = viewportHeight * 0.75
+  for (const element of page.value?.querySelectorAll('.hero-stage, .scene') ?? []) {
+    const rect = element.getBoundingClientRect()
+    const distance = Math.abs(rect.top + rect.height / 2 - viewportCenter)
+    const fade = Math.min(1, Math.max(0, 1 - (distance - opaqueRange) / (fadeRange - opaqueRange)))
+    element.style.setProperty('--scene-fade', fade.toFixed(3))
+  }
 }
 
 onMounted(() => {
   window.addEventListener('scroll', onScroll, { passive: true })
+  window.addEventListener('resize', onScroll)
   onScroll()
   // 首屏以下的区块首次进入视口时加类，之后停止观察；动画本身交给 CSS。
   const targets = page.value?.querySelectorAll('[data-reveal]') ?? []
@@ -25,6 +41,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', onScroll)
+  window.removeEventListener('resize', onScroll)
   stopReveal?.()
 })
 </script>
@@ -77,6 +94,8 @@ onBeforeUnmount(() => {
 .hero-stage {
   position: relative;
   z-index: 1;
+  /* 滚动时按与视口中心的距离淡入淡出，边缘内容不抢中心焦点 */
+  opacity: var(--scene-fade, 1);
   display: grid;
   align-items: center;
   min-height: calc(100vh - var(--nav-height));
@@ -89,6 +108,8 @@ onBeforeUnmount(() => {
   position: relative;
   /* 区块整体压在固定粒子背景之上 */
   z-index: 1;
+  /* 由 updateSceneFade 写入，越靠视口边缘越透明 */
+  opacity: var(--scene-fade, 1);
 }
 
 /* 动画放在内容层而不是锚点区块本身，避免位移改变锚点落点 */
@@ -111,6 +132,12 @@ onBeforeUnmount(() => {
     opacity: 1;
     transform: none;
     transition: none;
+  }
+
+  /* 滚动淡化也属于动效，偏好减少动态时保持完全可见 */
+  .hero-stage,
+  .scene {
+    opacity: 1;
   }
 }
 
@@ -262,10 +289,23 @@ onBeforeUnmount(() => {
     align-self: start;
   }
 
+  /* 小屏单列布局留白多，标题放大一档增强首屏存在感 */
+  .hero__mark {
+    font-size: clamp(3.5rem, 15vw, 5rem);
+  }
+
   .hero__actions {
     align-items: stretch;
     flex-direction: column;
-    max-width: 20rem;
+    gap: 0.65rem;
+    max-width: 16rem;
+  }
+
+  /* 小屏按钮收紧尺寸，避免占满整屏宽度 */
+  .hero__action {
+    min-height: 2.5rem;
+    padding: 0.6rem 0.85rem;
+    font-size: 0.95rem;
   }
 
   /* TST 作为居中浅色水印 */

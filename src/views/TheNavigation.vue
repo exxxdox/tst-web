@@ -235,6 +235,8 @@ export default {
 .nav-link {
   padding-block: 0.4rem;
   color: rgba(222, 255, 238, 0.78);
+  /* 与左侧 TST 标志统一使用显示字体 */
+  font-family: var(--font-display);
   font-size: clamp(0.92rem, 1.5vw, 1rem);
   letter-spacing: 0.04em;
 }
@@ -407,6 +409,8 @@ export default {
   }
   .drawer-nav a {
     color: var(--color-heading);
+    /* 移动端抽屉沿用桌面导航的显示字体 */
+    font-family: var(--font-display);
     font-size: 1.6rem;
   }
   .drawer-foot {

@@ -8,6 +8,12 @@ const links = [
     url: 'https://transcribe.tstio.com',
     description: 'Transcribe, learn, and stay creative.',
   },
+  // 外部在线 tanpura 持续音工具，独立站点，补进 Web instruments 工具列表
+  {
+    title: 'Tanpura Drone',
+    url: 'https://tanpura.tool.tstio.com/',
+    description: 'A continuous tanpura drone for tuning and long-tone practice.',
+  },
 ]
 </script>
 

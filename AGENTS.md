@@ -19,7 +19,7 @@ pnpm format       # 格式化 src/、README 与根配置
 ```
 
 - **没有 lint、typecheck、第三方测试框架或 CI**（`.github/` 已删除）。测试使用 Node 内置 `node:test`，别为了扩覆盖率引入测试栈。
-- 包管理器锁定 `pnpm@11.8.0`，Node `^20.19.0 || >=22.12.0`。
+- 包管理器锁定 `pnpm@11.8.0`，Node `24.x`。
 
 ## 架构
 
